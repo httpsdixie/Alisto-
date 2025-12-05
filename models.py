@@ -7,7 +7,11 @@ import uuid
 
 from database import Base
 
-pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+pwd_context = CryptContext(
+    schemes=["bcrypt"],
+    deprecated="auto",
+    bcrypt__truncate_error=False
+)
 
 class User(Base):
     __tablename__ = 'users'
