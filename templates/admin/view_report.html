@@ -1,170 +1,358 @@
 {% extends "base.html" %}
 
-{% block title %}Report {{ report.ticket_id }} - Admin - Alisto!{% endblock %}
+{% block title %}Manage Report {{ report.ticket_id }}{% endblock %}
 
 {% block content %}
 <div class="row">
     <div class="col-lg-8">
-        <div class="card mb-4">
-            <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
-                <h5 class="mb-0"><i class="bi bi-file-earmark-text me-2"></i>Report Details</h5>
-                <code class="text-white bg-dark px-2 py-1 rounded">{{ report.ticket_id }}</code>
+        <div class="card border-0 shadow-sm mb-4">
+            <div class="card-header bg-white py-3">
+                <div class="d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">
+                        <i class="bi bi-file-text me-2 text-primary"></i>Report Details
+                    </h5>
+                    <code class="bg-light px-2 py-1 rounded">{{ report.ticket_id }}</code>
+                </div>
             </div>
             <div class="card-body">
-                <h4>{{ report.title }}</h4>
-                <hr>
-                <div class="row mb-3">
+                <h4 class="mb-3">{{ report.title }}</h4>
+                
+                <div class="row mb-4">
                     <div class="col-md-6">
-                        <strong><i class="bi bi-person me-2"></i>Reported By:</strong>
-                        <p class="mb-0">{{ reporter.full_name }} <span class="badge bg-secondary">{{ reporter.user_type }}</span></p>
-                        <small class="text-muted">{{ reporter.student_id }} - {{ reporter.email }}</small>
+                        <p class="mb-2">
+                            <i class="bi bi-person text-primary me-2"></i>
+                            <strong>Reporter:</strong> {{ report.reporter.full_name }}
+                        </p>
+                        <p class="mb-2">
+                            <i class="bi bi-envelope text-primary me-2"></i>
+                            <strong>Email:</strong> {{ report.reporter.email }}
+                        </p>
+                        <p class="mb-2">
+                            <i class="bi bi-person-badge text-primary me-2"></i>
+                            <strong>{% if report.reporter.user_type == 'Faculty' %}Faculty{% else %}Student{% endif %} ID:</strong> {{ report.reporter.student_id }}
+                        </p>
+                        <p class="mb-2">
+                            <i class="bi bi-person text-primary me-2"></i>
+                            <strong>Type:</strong> <span class="badge {% if report.reporter.user_type == 'Faculty' %}bg-primary{% else %}bg-info{% endif %}">{{ report.reporter.user_type }}</span>
+                        </p>
                     </div>
                     <div class="col-md-6">
-                        <strong><i class="bi bi-geo-alt me-2"></i>Location:</strong>
-                        <p class="mb-0">{{ report.location }}</p>
+                        <p class="mb-2">
+                            <i class="bi bi-geo-alt text-primary me-2"></i>
+                            <strong>Location:</strong> {{ report.location }}
+                        </p>
+                        <p class="mb-2">
+                            <i class="bi bi-tag text-primary me-2"></i>
+                            <strong>Category:</strong> 
+                            <span class="badge bg-secondary">{{ report.category }}</span>
+                        </p>
+                        <p class="mb-2">
+                            <i class="bi bi-calendar text-primary me-2"></i>
+                            <strong>Submitted:</strong> {{ report.created_at.strftime('%B %d, %Y at %I:%M %p') }}
+                        </p>
                     </div>
                 </div>
-                <div class="row mb-3">
-                    <div class="col-md-6">
-                        <strong><i class="bi bi-folder me-2"></i>Category:</strong>
-                        <p class="mb-0"><span class="badge bg-secondary">{{ report.category }}</span></p>
-                    </div>
-                    <div class="col-md-6">
-                        <strong><i class="bi bi-calendar me-2"></i>Submitted:</strong>
-                        <p class="mb-0">{{ report.created_at.strftime('%B %d, %Y at %I:%M %p') }}</p>
-                    </div>
+                
+                <div class="mb-4">
+                    <h6 class="text-muted mb-2">Description</h6>
+                    <p class="bg-light p-3 rounded">{{ report.description }}</p>
                 </div>
-                <div class="mb-3">
-                    <strong><i class="bi bi-text-paragraph me-2"></i>Description:</strong>
-                    <p class="mb-0">{{ report.description }}</p>
-                </div>
+                
                 {% if report.photo_path %}
-                <div class="mb-3">
-                    <strong><i class="bi bi-image me-2"></i>Photo Evidence:</strong>
-                    <div class="mt-2">
-                        <img src="/static/uploads/{{ report.photo_path }}" class="img-fluid rounded" style="max-height: 300px;" alt="Report photo">
-                    </div>
+                <div class="mb-4">
+                    <h6 class="text-muted mb-2">Photo Evidence</h6>
+                    <img src="/static/uploads/{{ report.photo_path }}" class="img-fluid rounded" alt="Report photo" style="max-height: 400px;">
                 </div>
                 {% endif %}
-                {% if report.proof_path %}
-                <div class="mb-3">
-                    <strong><i class="bi bi-check-circle me-2"></i>Resolution Proof:</strong>
-                    <div class="mt-2">
-                        <img src="/static/uploads/{{ report.proof_path }}" class="img-fluid rounded" style="max-height: 300px;" alt="Resolution proof">
+                
+                {% if report.feedback %}
+                <div class="mb-4">
+                    <h6 class="text-muted mb-2">User Feedback</h6>
+                    <div class="alert alert-success mb-0">
+                        <div class="mb-2">
+                            <span class="text-warning">
+                                {% for i in range(report.feedback.rating) %}
+                                    <i class="bi bi-star-fill"></i>
+                                {% endfor %}
+                                {% for i in range(5 - report.feedback.rating) %}
+                                    <i class="bi bi-star"></i>
+                                {% endfor %}
+                            </span>
+                            <span class="ms-2">({{ report.feedback.rating }}/5)</span>
+                        </div>
+                        {% if report.feedback.comments %}
+                        <p class="mb-1">{{ report.feedback.comments }}</p>
+                        {% endif %}
+                        <small class="text-muted">
+                            {% if report.feedback.resolution_confirmed %}
+                                <i class="bi bi-check-circle me-1"></i>Resolution confirmed
+                            {% else %}
+                                <i class="bi bi-x-circle me-1"></i>Resolution not confirmed
+                            {% endif %}
+                        </small>
                     </div>
                 </div>
                 {% endif %}
             </div>
         </div>
-
-        <div class="card mb-4">
-            <div class="card-header bg-warning">
-                <h5 class="mb-0"><i class="bi bi-pencil-square me-2"></i>Update Report</h5>
+        
+        <div class="card border-0 shadow-sm mb-4">
+            <div class="card-header {% if report.status == 'Resolved' %}bg-success{% else %}bg-primary{% endif %} text-white py-3">
+                <h5 class="mb-0"><i class="bi {% if report.status == 'Resolved' %}bi-lock{% else %}bi-pencil{% endif %} me-2"></i>{% if report.status == 'Resolved' %}Report Locked (Resolved){% else %}Update Report{% endif %}</h5>
             </div>
             <div class="card-body">
-                <form method="POST" action="/admin/report/{{ report.id }}" enctype="multipart/form-data">
-                    <div class="row mb-3">
-                        <div class="col-md-6">
-                            <label for="status" class="form-label">Status</label>
-                            <select class="form-select" id="status" name="status" required>
-                                <option value="Pending" {% if report.status == 'Pending' %}selected{% endif %}>Pending</option>
-                                <option value="In Progress" {% if report.status == 'In Progress' %}selected{% endif %}>In Progress</option>
-                                <option value="Resolved" {% if report.status == 'Resolved' %}selected{% endif %}>Resolved</option>
+                {% if report.status == 'Resolved' %}
+                <div class="alert alert-info mb-3">
+                    <i class="bi bi-info-circle me-2"></i>This report has been resolved and cannot be edited.
+                </div>
+                {% endif %}
+                <form method="POST" action="/admin/report/{{ report.id }}" id="updateForm" enctype="multipart/form-data">
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="status" class="form-label">
+                                <i class="bi bi-flag me-1"></i>Status
+                            </label>
+                            <select name="status" class="form-select" id="statusSelect" {% if report.status == 'Resolved' %}disabled{% endif %}>
+                                {% if report.status == 'Pending' %}
+                                    <option value="Pending" selected>Pending</option>
+                                    <option value="In Progress">In Progress</option>
+                                    <option value="Resolved">Resolved</option>
+                                {% elif report.status == 'In Progress' %}
+                                    <option value="In Progress" selected>In Progress</option>
+                                    <option value="Resolved">Resolved</option>
+                                {% else %}
+                                    <option value="Resolved" selected>Resolved</option>
+                                {% endif %}
                             </select>
+                            {% if report.status != 'Resolved' %}
+                            <small class="text-muted">Status flow: Pending → In Progress → Resolved (cannot go backwards)</small>
+                            {% endif %}
                         </div>
-                        <div class="col-md-6">
-                            <label for="priority" class="form-label">Priority</label>
-                            <select class="form-select" id="priority" name="priority" required>
+                        <div class="col-md-6 mb-3">
+                            <label for="priority" class="form-label">
+                                <i class="bi bi-exclamation-circle me-1"></i>Priority
+                            </label>
+                            <select name="priority" class="form-select" {% if report.status == 'Resolved' %}disabled{% endif %}>
                                 <option value="Low" {% if report.priority == 'Low' %}selected{% endif %}>Low</option>
                                 <option value="Medium" {% if report.priority == 'Medium' %}selected{% endif %}>Medium</option>
                                 <option value="High" {% if report.priority == 'High' %}selected{% endif %}>High</option>
                             </select>
                         </div>
                     </div>
+                    
                     <div class="mb-3">
-                        <label for="admin_notes" class="form-label">Admin Notes</label>
-                        <textarea class="form-control" id="admin_notes" name="admin_notes" rows="3">{{ report.admin_notes or '' }}</textarea>
+                        <label for="admin_notes" class="form-label">
+                            <i class="bi bi-sticky me-1"></i>Admin Notes
+                        </label>
+                        <textarea name="admin_notes" class="form-control" rows="3" placeholder="Add notes about this report (visible to reporter)..." {% if report.status == 'Resolved' %}disabled{% endif %}>{{ report.admin_notes or '' }}</textarea>
                     </div>
-                    <div class="mb-3">
-                        <label for="proof" class="form-label">Resolution Proof (Optional)</label>
-                        <input type="file" class="form-control" id="proof" name="proof" accept="image/*">
+                    
+                    <div class="mb-3" id="proofUploadDiv" style="{% if report.status != 'Resolved' %}display: none;{% endif %}">
+                        <label for="proof" class="form-label">
+                            <i class="bi bi-file-earmark-image me-1"></i>Resolution Proof <span class="text-danger">*</span>
+                        </label>
+                        <input type="file" name="proof" class="form-control" accept="image/*,.pdf" {% if report.status == 'Resolved' %}disabled{% endif %}>
+                        <small class="text-muted">Upload photo, screenshot, or PDF showing the issue has been resolved (required when marking as Resolved)</small>
                     </div>
-                    <button type="submit" class="btn btn-primary">
-                        <i class="bi bi-save me-2"></i>Save Changes
-                    </button>
+                    
+                    <div class="d-flex gap-2">
+                        {% if report.status != 'Resolved' %}
+                        <button type="submit" class="btn btn-primary" id="submitBtn">
+                            <i class="bi bi-save me-2"></i>Update Report
+                        </button>
+                        {% endif %}
+                        <a href="/admin/reports" class="btn btn-outline-secondary">
+                            <i></i>Back to Reports
+                        </a>
+                    </div>
                 </form>
             </div>
         </div>
-
-        {% if feedback %}
-        <div class="card mb-4">
-            <div class="card-header bg-success text-white">
-                <h5 class="mb-0"><i class="bi bi-star-fill me-2"></i>User Feedback</h5>
-            </div>
-            <div class="card-body">
-                <p class="fs-4 text-warning mb-2">
-                    {% for i in range(5) %}
-                        {% if i < feedback.rating %}★{% else %}☆{% endif %}
-                    {% endfor %}
-                    <span class="text-dark fs-6 ms-2">({{ feedback.rating }}/5)</span>
-                </p>
-                {% if feedback.comments %}
-                <p class="mb-0">{{ feedback.comments }}</p>
-                {% endif %}
-                <small class="text-muted">Submitted on {{ feedback.created_at.strftime('%B %d, %Y') }}</small>
+        
+        <!-- Resolve Confirmation Modal -->
+        <div class="modal fade" id="resolveModal" tabindex="-1" aria-labelledby="resolveModalLabel" aria-hidden="true">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header bg-success text-white">
+                        <h5 class="modal-title" id="resolveModalLabel">
+                            <i class="bi bi-question-circle me-2"></i>Confirm Resolution
+                        </h5>
+                        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <p>Are you sure this issue has been <strong>resolved</strong>?</p>
+                        <p class="text-muted mb-0">Once resolved, this report cannot be edited or reverted.</p>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                        <button type="button" class="btn btn-success" id="confirmResolveBtn">
+                            <i class="bi bi-check-circle me-2"></i>Yes, Resolve It
+                        </button>
+                    </div>
+                </div>
             </div>
         </div>
-        {% endif %}
+        
+        <!-- Resolution Proof Modal -->
+        <div class="modal fade" id="resolutionProofModal" tabindex="-1" aria-labelledby="resolutionProofLabel" aria-hidden="true">
+            <div class="modal-dialog modal-lg">
+                <div class="modal-content">
+                    <div class="modal-header bg-success text-white">
+                        <h5 class="modal-title" id="resolutionProofLabel">
+                            <i class="bi bi-check-circle me-2"></i>Resolution Recorded
+                        </h5>
+                        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body text-center py-5">
+                        <div class="mb-4">
+                            <i class="bi bi-check-circle display-1 text-success"></i>
+                        </div>
+                        <h6 class="mb-3">Report Successfully Resolved</h6>
+                        <p class="text-muted mb-3">
+                            <strong>Ticket:</strong> {{ report.ticket_id }}<br>
+                            <strong>Resolved By:</strong> {{ current_user.full_name }}<br>
+                            <strong>Time:</strong> <span id="resolveTime">Now</span>
+                        </p>
+                        <div class="alert alert-info">
+                            <i class="bi bi-info-circle me-2"></i>The reporter has been notified and will see this update on their dashboard.
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-success" data-bs-dismiss="modal">
+                            <i class="bi bi-check me-2"></i>Done
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <script>
+            // Show proof upload when status changes to Resolved
+            document.getElementById('statusSelect').addEventListener('change', function() {
+                const proofDiv = document.getElementById('proofUploadDiv');
+                if (this.value === 'Resolved') {
+                    proofDiv.style.display = 'block';
+                } else {
+                    proofDiv.style.display = 'none';
+                }
+            });
+            
+            document.getElementById('updateForm').addEventListener('submit', function(e) {
+                const newStatus = document.getElementById('statusSelect').value;
+                const currentStatus = '{{ report.status }}';
+                const proofInput = document.querySelector('input[name="proof"]');
+                
+                if (newStatus === 'Resolved' && currentStatus !== 'Resolved') {
+                    if (!proofInput.files.length) {
+                        e.preventDefault();
+                        alert('Please upload proof/evidence before resolving this report.');
+                        return;
+                    }
+                    
+                    e.preventDefault();
+                    const modal = new bootstrap.Modal(document.getElementById('resolveModal'));
+                    modal.show();
+                    
+                    document.getElementById('confirmResolveBtn').addEventListener('click', function() {
+                        modal.hide();
+                        document.getElementById('updateForm').submit();
+                        
+                        // Show resolution proof after brief delay
+                        setTimeout(() => {
+                            const now = new Date();
+                            document.getElementById('resolveTime').textContent = now.toLocaleString();
+                            const proofModal = new bootstrap.Modal(document.getElementById('resolutionProofModal'));
+                            proofModal.show();
+                        }, 1500);
+                    });
+                }
+            });
+        </script>
     </div>
-
+    
     <div class="col-lg-4">
-        <div class="card mb-4">
-            <div class="card-header bg-white">
-                <h5 class="mb-0"><i class="bi bi-info-circle me-2"></i>Current Status</h5>
+        <div class="card border-0 shadow-sm mb-4">
+            <div class="card-header bg-white py-3">
+                <h5 class="mb-0"><i class="bi bi-info-circle me-2 text-primary"></i>Current Status</h5>
             </div>
             <div class="card-body text-center">
-                <span class="badge {% if report.status == 'Resolved' %}bg-success{% elif report.status == 'In Progress' %}bg-info{% else %}bg-warning text-dark{% endif %} fs-4 px-4 py-2">
-                    {{ report.status }}
-                </span>
-                <hr>
-                <p class="mb-1"><strong>Priority:</strong></p>
-                <span class="badge {% if report.priority == 'High' %}bg-danger{% elif report.priority == 'Medium' %}bg-warning text-dark{% else %}bg-success{% endif %} fs-6">
-                    {{ report.priority }}
-                </span>
+                {% if report.status == 'Pending' %}
+                    <span class="badge bg-warning text-dark fs-4 px-4 py-2">
+                        <i class="bi bi-clock me-2"></i>Pending
+                    </span>
+                {% elif report.status == 'In Progress' %}
+                    <span class="badge bg-info fs-4 px-4 py-2">
+                        <i class="bi bi-arrow-repeat me-2"></i>In Progress
+                    </span>
+                {% else %}
+                    <span class="badge bg-success fs-4 px-4 py-2">
+                        <i class="bi bi-check-circle me-2"></i>Resolved
+                    </span>
+                {% endif %}
+                
+                <div class="mt-3">
+                    {% if report.priority == 'High' %}
+                        <span class="badge bg-danger">High Priority</span>
+                    {% elif report.priority == 'Medium' %}
+                        <span class="badge bg-warning text-dark">Medium Priority</span>
+                    {% else %}
+                        <span class="badge bg-info">Low Priority</span>
+                    {% endif %}
+                </div>
+                
+                {% if report.assigned_admin %}
+                <p class="text-muted mt-3 mb-0">
+                    <small>Assigned to: {{ report.assigned_admin.full_name }}</small>
+                </p>
+                {% endif %}
             </div>
         </div>
-
-        <div class="card">
-            <div class="card-header bg-white">
-                <h5 class="mb-0"><i class="bi bi-clock-history me-2"></i>Status History</h5>
+        
+        <div class="card border-0 shadow-sm">
+            <div class="card-header bg-white py-3">
+                <h5 class="mb-0"><i class="bi bi-clock-history me-2 text-primary"></i>Status History</h5>
             </div>
-            <div class="card-body">
-                {% if status_history %}
-                <div class="timeline">
+            <div class="card-body p-0">
+                <div class="timeline p-3">
                     {% for history in status_history %}
                     <div class="timeline-item mb-3 pb-3 border-bottom">
-                        <div class="d-flex justify-content-between">
-                            <span class="badge {% if history.new_status == 'Resolved' %}bg-success{% elif history.new_status == 'In Progress' %}bg-info{% else %}bg-warning text-dark{% endif %}">
-                                {{ history.new_status }}
-                            </span>
-                            <small class="text-muted">{{ history.created_at.strftime('%b %d, %H:%M') }}</small>
+                        <div class="d-flex">
+                            <div class="flex-shrink-0">
+                                {% if history.new_status == 'Resolved' %}
+                                    <div class="bg-success rounded-circle p-2 text-white">
+                                        <i class="bi bi-check"></i>
+                                    </div>
+                                {% elif history.new_status == 'In Progress' %}
+                                    <div class="bg-info rounded-circle p-2 text-white">
+                                        <i class="bi bi-arrow-repeat"></i>
+                                    </div>
+                                {% else %}
+                                    <div class="bg-warning rounded-circle p-2">
+                                        <i class="bi bi-clock"></i>
+                                    </div>
+                                {% endif %}
+                            </div>
+                            <div class="flex-grow-1 ms-3">
+                                <p class="mb-1">
+                                    {% if history.old_status %}
+                                        <span class="text-muted">{{ history.old_status }}</span>
+                                        <i class="bi bi-arrow-right mx-1"></i>
+                                    {% endif %}
+                                    <strong>{{ history.new_status }}</strong>
+                                </p>
+                                {% if history.notes %}
+                                <p class="text-muted small mb-1">{{ history.notes }}</p>
+                                {% endif %}
+                                <small class="text-muted">
+                                    {{ history.created_at.strftime('%b %d, %Y %I:%M %p') }}
+                                    <br>by {{ history.changed_by.full_name }}
+                                </small>
+                            </div>
                         </div>
-                        {% if history.notes %}
-                        <small class="text-muted d-block mt-1">{{ history.notes }}</small>
-                        {% endif %}
                     </div>
                     {% endfor %}
                 </div>
-                {% else %}
-                <p class="text-muted mb-0">No status updates yet.</p>
-                {% endif %}
             </div>
-        </div>
-
-        <div class="mt-3">
-            <a href="/admin/reports" class="btn btn-outline-secondary w-100">
-                <i class="bi bi-arrow-left me-2"></i>Back to All Reports
-            </a>
         </div>
     </div>
 </div>

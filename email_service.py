@@ -1,31 +1,42 @@
-import resend
+import smtplib
 import os
 import logging
+from email.mime.text import MIMEText
+from email.mime.multipart import MIMEMultipart
 from config import settings
 
 logger = logging.getLogger(__name__)
 
 def init_resend():
-    api_key = settings.RESEND_API_KEY or os.environ.get('RESEND_API_KEY')
-    if api_key:
-        resend.api_key = api_key
+    """Kept for compatibility - not needed for Gmail SMTP"""
+    pass
 
 def send_email(to_email: str, subject: str, html_content: str) -> bool:
+    """Send email using Gmail SMTP"""
     try:
-        api_key = settings.RESEND_API_KEY or os.environ.get('RESEND_API_KEY')
+        gmail_user = os.environ.get('GMAIL_USER')
+        gmail_app_password = os.environ.get('GMAIL_APP_PASSWORD')
         
-        if not api_key:
-            logger.warning(f"Email skipped: RESEND_API_KEY not configured")
+        if not gmail_user or not gmail_app_password:
+            logger.warning(f"Email skipped: Gmail credentials not configured")
+            logger.warning(f"Please set GMAIL_USER and GMAIL_APP_PASSWORD in .env file")
             return False
-            
-        params = {
-            "from": "Alisto <onboarding@resend.dev>",
-            "to": [to_email],
-            "subject": subject,
-            "html": html_content
-        }
         
-        email = resend.Emails.send(params)
+        # Create message
+        msg = MIMEMultipart('alternative')
+        msg['Subject'] = subject
+        msg['From'] = f"Alisto! Campus Safety <{gmail_user}>"
+        msg['To'] = to_email
+        
+        # Attach HTML content
+        html_part = MIMEText(html_content, 'html')
+        msg.attach(html_part)
+        
+        # Send via Gmail SMTP
+        with smtplib.SMTP_SSL('smtp.gmail.com', 465) as server:
+            server.login(gmail_user, gmail_app_password)
+            server.send_message(msg)
+        
         logger.info(f"Email sent to {to_email} - {subject}")
         return True
         
@@ -157,6 +168,41 @@ def send_password_reset(user, reset_url: str) -> bool:
     </div>
     """
     return send_email(user.email, subject, html_content)
+
+def send_admin_new_report_notification(admin, reporter, report) -> bool:
+    """Send email to admin when a new report is submitted"""
+    subject = f"New Report Submitted - {report.ticket_id}"
+    html_content = f"""
+    <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+        <div style="background: linear-gradient(135deg, #8B0000, #FFD700); padding: 20px; text-align: center;">
+            <h1 style="color: white; margin: 0;">Alisto!</h1>
+            <p style="color: white; margin: 5px 0;">EVSU-OC Campus Safety Reporting System</p>
+        </div>
+        <div style="padding: 20px; background: #f9f9f9;">
+            <h2 style="color: #8B0000;">New Report Submitted</h2>
+            <p>Dear Admin,</p>
+            <p>A new safety report has been submitted and requires your attention.</p>
+            <div style="background: white; padding: 15px; border-radius: 5px; margin: 15px 0; border-left: 4px solid #8B0000;">
+                <p><strong>Ticket ID:</strong> {report.ticket_id}</p>
+                <p><strong>Title:</strong> {report.title}</p>
+                <p><strong>Location:</strong> {report.location}</p>
+                <p><strong>Category:</strong> {report.category}</p>
+                <p><strong>Priority:</strong> <span style="color: {'#dc3545' if report.priority == 'High' else '#ffc107' if report.priority == 'Medium' else '#28a745'};">{report.priority}</span></p>
+                <p><strong>Status:</strong> {report.status}</p>
+                <p><strong>Reported by:</strong> {reporter.full_name} ({reporter.student_id})</p>
+            </div>
+            <div style="background: #fff3cd; padding: 10px; border-radius: 5px; margin: 15px 0; border-left: 4px solid #FFD700;">
+                <p style="margin: 0;"><strong>Description:</strong></p>
+                <p style="margin: 5px 0 0 0;">{report.description}</p>
+            </div>
+            <p>Please review and take appropriate action.</p>
+        </div>
+        <div style="background: #8B0000; padding: 10px; text-align: center;">
+            <p style="color: white; margin: 0; font-size: 12px;">EVSU-OC Campus Safety Team</p>
+        </div>
+    </div>
+    """
+    return send_email(admin.email, subject, html_content)
 
 def send_report_deleted_notification(admin_email: str, user, report, deletion_reason: str) -> bool:
     subject = f"Report Deleted by User - {report.ticket_id}"

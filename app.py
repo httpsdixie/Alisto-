@@ -28,7 +28,7 @@ from auth import (
 )
 from email_service import (
     init_resend, send_report_confirmation, send_status_update, 
-    send_feedback_request, send_password_reset
+    send_feedback_request, send_password_reset, send_admin_new_report_notification
 )
 
 Base.metadata.create_all(bind=engine)
@@ -49,6 +49,16 @@ os.makedirs('static/js', exist_ok=True)
 
 app.mount("/static", StaticFiles(directory="static"), name="static")
 templates = Jinja2Templates(directory="templates")
+
+# Add timezone conversion filter for Philippine Time (UTC+8)
+def to_philippine_time(utc_dt):
+    if utc_dt is None:
+        return None
+    # Add 8 hours to convert UTC to Philippine Time
+    philippine_dt = utc_dt + timedelta(hours=8)
+    return philippine_dt
+
+templates.env.filters['philippine_time'] = to_philippine_time
 
 init_resend()
 
@@ -133,9 +143,11 @@ async def index(
 ):
     if current_user:
         return RedirectResponse(url="/dashboard", status_code=302)
+    flash_message = request.cookies.get("flash_message", "")
     return templates.TemplateResponse("index.html", {
         "request": request,
-        "current_user": None
+        "current_user": None,
+        "flash_message": flash_message
     })
 
 @app.get("/api/home-stats")
@@ -477,7 +489,6 @@ async def admin_dashboard(
     db.commit()
     
     reports = db.query(Report).order_by(Report.updated_at.desc()).limit(10).all()
-    notifications = db.query(Notification).order_by(Notification.created_at.desc()).all()
     
     pending_count = db.query(Report).filter_by(status='Pending').count()
     in_progress_count = db.query(Report).filter_by(status='In Progress').count()
@@ -492,12 +503,23 @@ async def admin_dashboard(
         avg_rating = round(float(avg_rating), 2)
         satisfaction_percentage = round((avg_rating / 5.0) * 100, 1)
     
+    # Get category and priority stats for charts
+    categories = {}
+    for category in ['Infrastructure', 'Safety Hazard', 'Electrical', 'Plumbing', 'Sanitation', 'Security', 'Other']:
+        count = db.query(Report).filter_by(category=category).count()
+        if count > 0:
+            categories[category] = count
+    
+    priorities = {}
+    for priority in ['Low', 'Medium', 'High']:
+        count = db.query(Report).filter_by(priority=priority).count()
+        priorities[priority] = count
+    
     flash_message = request.cookies.get("flash_message", "")
     return templates.TemplateResponse("dashboard/admin_dashboard.html", {
         "request": request,
         "current_user": current_user,
         "reports": reports,
-        "notifications": notifications,
         "pending_count": pending_count,
         "in_progress_count": in_progress_count,
         "resolved_count": resolved_count,
@@ -505,9 +527,9 @@ async def admin_dashboard(
         "total_feedbacks": total_feedbacks,
         "avg_rating": avg_rating,
         "satisfaction_percentage": satisfaction_percentage,
-        "flash_message": flash_message,
-        "get_notifications": lambda: get_notifications(db, current_user),
-        "get_unread_notifications_count": lambda: get_unread_notifications_count(db, current_user)
+        "categories": categories,
+        "priorities": priorities,
+        "flash_message": flash_message
     })
 
 @app.get("/report/new", response_class=HTMLResponse)
@@ -531,9 +553,13 @@ async def new_report(
     location: str = Form(...),
     description: str = Form(...),
     category: str = Form(...),
-    priority: str = Form("Medium"),
-    photo: Optional[UploadFile] = File(None)
+    priority: str = Form(default="Medium"),
+    photo: UploadFile = File(default=None)
 ):
+    print(f"DEBUG: Report submission started for user {current_user.student_id}")
+    print(f"DEBUG: Title={title}, Location={location}, Category={category}, Priority={priority}")
+    print(f"DEBUG: Photo={photo}, Photo filename={photo.filename if photo else 'None'}")
+    
     last_24_hours = datetime.utcnow() - timedelta(hours=24)
     
     reports_today = db.query(Report).filter_by(user_id=current_user.id).filter(
@@ -560,49 +586,64 @@ async def new_report(
     if photo and photo.filename:
         photo_filename = await save_photo(photo)
     
-    report = Report(
-        title=sanitize_input(title),
-        location=sanitize_input(location),
-        description=sanitize_input(description),
-        category=category,
-        priority=priority,
-        photo_path=photo_filename,
-        user_id=current_user.id
-    )
+    try:
+        report = Report(
+            title=sanitize_input(title),
+            location=sanitize_input(location),
+            description=sanitize_input(description),
+            category=category,
+            priority=priority,
+            photo_path=photo_filename,
+            user_id=current_user.id
+        )
+        
+        db.add(report)
+        db.commit()
+        db.refresh(report)
+    except Exception as e:
+        print(f"Error creating report: {str(e)}")
+        db.rollback()
+        response = RedirectResponse(url="/report/new", status_code=302)
+        response.set_cookie("flash_message", f"danger:Error submitting report: {str(e)}", max_age=5)
+        return response
     
-    db.add(report)
-    db.commit()
-    db.refresh(report)
-    
-    status_history = StatusHistory(
-        report_id=report.id,
-        old_status=None,
-        new_status='Pending',
-        notes='Report submitted',
-        changed_by_id=current_user.id
-    )
-    db.add(status_history)
-    
-    notification = Notification(
-        type='report_submitted',
-        user_student_id=current_user.student_id,
-        user_name=current_user.full_name,
-        report_ticket_id=report.ticket_id,
-        report_title=report.title,
-        deletion_reason=None,
-        is_read=False
-    )
-    db.add(notification)
-    db.commit()
-    
-    notification_count = db.query(Notification).count()
-    if notification_count > 20:
-        oldest = db.query(Notification).order_by(Notification.created_at.asc()).first()
-        if oldest:
-            db.delete(oldest)
-            db.commit()
-    
-    send_report_confirmation(current_user, report)
+    try:
+        status_history = StatusHistory(
+            report_id=report.id,
+            old_status=None,
+            new_status='Pending',
+            notes='Report submitted',
+            changed_by_id=current_user.id
+        )
+        db.add(status_history)
+        
+        notification = Notification(
+            type='report_submitted',
+            user_student_id=current_user.student_id,
+            user_name=current_user.full_name,
+            report_ticket_id=report.ticket_id,
+            report_title=report.title,
+            deletion_reason=None,
+            is_read=False
+        )
+        db.add(notification)
+        db.commit()
+        
+        notification_count = db.query(Notification).count()
+        if notification_count > 20:
+            oldest = db.query(Notification).order_by(Notification.created_at.asc()).first()
+            if oldest:
+                db.delete(oldest)
+                db.commit()
+        
+        try:
+            # Send confirmation email to user
+            send_report_confirmation(current_user, report)
+        except Exception as email_error:
+            print(f"Email sending failed: {str(email_error)}")
+    except Exception as e:
+        print(f"Error creating status history/notification: {str(e)}")
+        db.rollback()
     
     response = RedirectResponse(url="/my-reports", status_code=302)
     response.set_cookie("flash_message", f"success:Report submitted successfully! Your Ticket ID: {report.ticket_id}", max_age=5)
@@ -626,7 +667,8 @@ async def my_reports(
         query = query.filter(
             (Report.title.ilike(f'%{keyword}%')) | 
             (Report.description.ilike(f'%{keyword}%')) |
-            (Report.location.ilike(f'%{keyword}%'))
+            (Report.location.ilike(f'%{keyword}%')) |
+            (Report.ticket_id.ilike(f'%{keyword}%'))
         )
     if category:
         query = query.filter_by(category=category)
@@ -748,6 +790,70 @@ async def submit_feedback(
     response.set_cookie("flash_message", "success:Thank you for your feedback!", max_age=5)
     return response
 
+@app.post("/report/{report_id}/delete")
+async def delete_report(
+    report_id: int,
+    request: Request,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+    deletion_reason: str = Form(...)
+):
+    try:
+        print(f"DELETE ROUTE CALLED: report_id={report_id}, user_id={current_user.id}, deletion_reason={deletion_reason}")
+        report = db.query(Report).filter_by(id=report_id).first()
+        
+        if not report:
+            print(f"ERROR: Report {report_id} not found in database")
+            response = RedirectResponse(url="/my-reports", status_code=302)
+            response.set_cookie("flash_message", "warning:Report not found.", max_age=5)
+            return response
+        
+        if report.user_id != current_user.id:
+            response = RedirectResponse(url="/dashboard", status_code=302)
+            response.set_cookie("flash_message", "danger:Access denied.", max_age=5)
+            return response
+        
+        if report.status != 'Pending':
+            response = RedirectResponse(url=f"/report/{report_id}", status_code=302)
+            response.set_cookie("flash_message", "warning:Only pending reports can be deleted.", max_age=5)
+            return response
+        
+        if len(deletion_reason.strip()) < 5:
+            response = RedirectResponse(url=f"/report/{report_id}", status_code=302)
+            response.set_cookie("flash_message", "danger:Deletion reason must be at least 5 characters.", max_age=5)
+            return response
+        
+        # Create notification for admin
+        notification = Notification(
+            type='report_deleted',
+            user_student_id=current_user.student_id,
+            user_name=current_user.full_name,
+            report_ticket_id=report.ticket_id,
+        report_title=report.title,
+        deletion_reason=sanitize_input(deletion_reason),
+        is_read=False
+    )
+        db.add(notification)
+        
+        # Delete associated records
+        db.query(StatusHistory).filter_by(report_id=report_id).delete()
+        db.query(Feedback).filter_by(report_id=report_id).delete()
+        
+        # Delete the report
+        db.delete(report)
+        db.commit()
+        
+        print(f"SUCCESS: Report {report_id} deleted successfully")
+        response = RedirectResponse(url="/my-reports", status_code=302)
+        response.set_cookie("flash_message", "success:Report deleted successfully.", max_age=5)
+        return response
+    except Exception as e:
+        print(f"ERROR deleting report: {str(e)}")
+        db.rollback()
+        response = RedirectResponse(url="/my-reports", status_code=302)
+        response.set_cookie("flash_message", "danger:Failed to delete report. Please try again.", max_age=5)
+        return response
+
 @app.get("/track-report", response_class=HTMLResponse)
 async def track_report_page(
     request: Request,
@@ -850,9 +956,7 @@ async def admin_reports(
         "priority": priority,
         "status": status,
         "sort_by": sort_by,
-        "flash_message": flash_message,
-        "get_notifications": lambda: get_notifications(db, current_user),
-        "get_unread_notifications_count": lambda: get_unread_notifications_count(db, current_user)
+        "flash_message": flash_message
     })
 
 @app.get("/admin/report/{report_id}", response_class=HTMLResponse)
@@ -881,9 +985,7 @@ async def admin_view_report(
         "reporter": reporter,
         "status_history": status_history,
         "feedback": feedback,
-        "flash_message": flash_message,
-        "get_notifications": lambda: get_notifications(db, current_user),
-        "get_unread_notifications_count": lambda: get_unread_notifications_count(db, current_user)
+        "flash_message": flash_message
     })
 
 @app.post("/admin/report/{report_id}")
@@ -944,9 +1046,18 @@ async def admin_users(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_admin),
     page: int = Query(1, ge=1),
+    category: str = Query("all", alias="category"),
     keyword: str = Query("", alias="keyword")
 ):
     query = db.query(User)
+    
+    # Filter by category
+    if category == "students":
+        query = query.filter_by(user_type='Student', is_admin=False)
+    elif category == "faculty":
+        query = query.filter_by(user_type='Faculty', is_admin=False)
+    elif category == "admin":
+        query = query.filter_by(is_admin=True)
     
     if keyword:
         query = query.filter(
@@ -963,23 +1074,23 @@ async def admin_users(
     total_pages = (total + per_page - 1) // per_page
     users = query.offset((page - 1) * per_page).limit(per_page).all()
     
-    user_report_counts = {}
+    # Get notification counts for each user
+    user_notifications = {}
     for user in users:
-        user_report_counts[user.id] = db.query(Report).filter_by(user_id=user.id).count()
+        user_notifications[user.id] = db.query(Notification).filter_by(user_student_id=user.student_id, is_read=False).count()
     
     flash_message = request.cookies.get("flash_message", "")
     return templates.TemplateResponse("admin/users.html", {
         "request": request,
         "current_user": current_user,
         "users": users,
-        "user_report_counts": user_report_counts,
+        "user_notifications": user_notifications,
         "page": page,
         "total_pages": total_pages,
         "total": total,
+        "category": category,
         "keyword": keyword,
-        "flash_message": flash_message,
-        "get_notifications": lambda: get_notifications(db, current_user),
-        "get_unread_notifications_count": lambda: get_unread_notifications_count(db, current_user)
+        "flash_message": flash_message
     })
 
 @app.post("/admin/user/{user_id}/toggle-status")
@@ -1087,6 +1198,123 @@ async def get_recent_reports(
         'created_at': r.created_at.strftime('%b %d, %Y %I:%M %p')
     } for r in reports]
 
+@app.get("/api/user/report-updates")
+async def get_user_report_updates(
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    reports = db.query(Report).filter_by(user_id=current_user.id).order_by(Report.updated_at.desc()).all()
+    return {
+        'updates': [{
+            'ticket_id': r.ticket_id,
+            'title': r.title,
+            'status': r.status,
+            'updated': r.updated_at.isoformat() if r.updated_at else r.created_at.isoformat()
+        } for r in reports]
+    }
+
+@app.get("/api/reports/stats")
+async def get_reports_stats(
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    try:
+        # Check if user is admin - return all stats, otherwise return user-specific stats
+        if current_user.is_admin:
+            pending = db.query(Report).filter_by(status='Pending').count()
+            in_progress = db.query(Report).filter_by(status='In Progress').count()
+            resolved = db.query(Report).filter_by(status='Resolved').count()
+            
+            # Get satisfaction data for admin
+            total_feedbacks = db.query(Feedback).count()
+            avg_rating = 0
+            satisfaction_percentage = 0
+            if total_feedbacks > 0:
+                avg_rating = db.query(func.avg(Feedback.rating)).scalar() or 0
+                avg_rating = round(float(avg_rating), 2)
+                satisfaction_percentage = round((avg_rating / 5.0) * 100, 1)
+            
+            # Get category and priority stats
+            categories = {}
+            for category in ['Infrastructure', 'Security', 'Health & Safety', 'Environmental', 'Technology', 'Other']:
+                count = db.query(Report).filter_by(category=category).count()
+                if count > 0:
+                    categories[category] = count
+            
+            priorities = {}
+            for priority in ['Low', 'Medium', 'High']:
+                count = db.query(Report).filter_by(priority=priority).count()
+                priorities[priority] = count
+            
+            return {
+                'status': {
+                    'pending': pending,
+                    'in_progress': in_progress,
+                    'resolved': resolved
+                },
+                'satisfaction': {
+                    'avg_rating': avg_rating,
+                    'total_feedbacks': total_feedbacks,
+                    'percentage': satisfaction_percentage
+                },
+                'categories': categories,
+                'priorities': priorities
+            }
+        else:
+            # Regular user - only their reports
+            pending = db.query(Report).filter_by(user_id=current_user.id, status='Pending').count()
+            in_progress = db.query(Report).filter_by(user_id=current_user.id, status='In Progress').count()
+            resolved = db.query(Report).filter_by(user_id=current_user.id, status='Resolved').count()
+            
+            return {
+                'status': {
+                    'pending': pending,
+                    'in_progress': in_progress,
+                    'resolved': resolved
+                }
+            }
+    except Exception as e:
+        print(f"Error getting report stats: {str(e)}")
+        return {
+            'status': {
+                'pending': 0,
+                'in_progress': 0,
+                'resolved': 0
+            }
+        }
+
+@app.get("/api/admin/notifications")
+async def get_admin_notifications(
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_admin)
+):
+    notifications = db.query(Notification).order_by(Notification.created_at.desc()).limit(20).all()
+    unread_count = db.query(Notification).filter_by(is_read=False).count()
+    
+    return {
+        'notifications': [{
+            'id': n.id,
+            'type': n.type,
+            'user_name': n.user_name,
+            'user_student_id': n.user_student_id,
+            'report_ticket_id': n.report_ticket_id,
+            'report_title': n.report_title,
+            'deletion_reason': n.deletion_reason,
+            'is_read': n.is_read,
+            'created_at': n.created_at.isoformat()
+        } for n in notifications],
+        'unread_count': unread_count
+    }
+
+@app.post("/api/admin/notifications/mark-read")
+async def mark_admin_notifications_read(
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_admin)
+):
+    db.query(Notification).update({'is_read': True})
+    db.commit()
+    return {'success': True}
+
 @app.get("/profile", response_class=HTMLResponse)
 async def profile_page(
     request: Request,
@@ -1128,15 +1356,63 @@ async def update_profile(
     response.set_cookie("flash_message", "success:Profile updated successfully!", max_age=5)
     return response
 
+@app.get("/about", response_class=HTMLResponse)
+async def about_page(
+    request: Request,
+    current_user: Optional[User] = Depends(get_current_user_optional)
+):
+    flash_message = request.cookies.get("flash_message", "")
+    return templates.TemplateResponse("about.html", {
+        "request": request,
+        "current_user": current_user,
+        "flash_message": flash_message
+    })
+
 @app.get("/help", response_class=HTMLResponse)
 async def help_page(
     request: Request,
     current_user: Optional[User] = Depends(get_current_user_optional)
 ):
+    flash_message = request.cookies.get("flash_message", "")
     return templates.TemplateResponse("help.html", {
         "request": request,
-        "current_user": current_user
+        "current_user": current_user,
+        "flash_message": flash_message
     })
+
+@app.get("/admin/guide", response_class=HTMLResponse)
+async def admin_guide(
+    request: Request,
+    current_user: User = Depends(get_current_admin)
+):
+    flash_message = request.cookies.get("flash_message", "")
+    return templates.TemplateResponse("admin/guide.html", {
+        "request": request,
+        "current_user": current_user,
+        "flash_message": flash_message
+    })
+
+@app.exception_handler(Exception)
+async def general_exception_handler(request: Request, exc):
+    import traceback
+    print("=" * 80)
+    print("UNHANDLED EXCEPTION:")
+    print(f"Exception type: {type(exc).__name__}")
+    print(f"Exception message: {str(exc)}")
+    print("Traceback:")
+    traceback.print_exc()
+    print("=" * 80)
+    
+    current_user = None
+    try:
+        db = next(get_db())
+        current_user = await get_current_user_optional(request, db)
+    except:
+        pass
+    return templates.TemplateResponse("errors/500.html", {
+        "request": request,
+        "current_user": current_user
+    }, status_code=500)
 
 @app.exception_handler(404)
 async def not_found_handler(request: Request, exc):
@@ -1153,6 +1429,15 @@ async def not_found_handler(request: Request, exc):
 
 @app.exception_handler(500)
 async def internal_error_handler(request: Request, exc):
+    import traceback
+    print("=" * 80)
+    print("500 ERROR OCCURRED:")
+    print(f"Exception type: {type(exc).__name__}")
+    print(f"Exception message: {str(exc)}")
+    print("Traceback:")
+    traceback.print_exc()
+    print("=" * 80)
+    
     current_user = None
     try:
         db = next(get_db())

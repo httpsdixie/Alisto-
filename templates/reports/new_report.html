@@ -1,37 +1,50 @@
 {% extends "base.html" %}
 
-{% block title %}New Report - Alisto!{% endblock %}
+{% block title %}Submit New Report{% endblock %}
 
 {% block content %}
 <div class="row justify-content-center">
-    <div class="col-md-8">
-        <div class="card shadow-sm">
-            <div class="card-header bg-primary text-white">
-                <h4 class="mb-0"><i class="bi bi-plus-circle me-2"></i>Submit New Report</h4>
+    <div class="col-lg-8">
+        <div class="card border-0 shadow-sm">
+            <div class="card-header bg-primary text-white py-3">
+                <h5 class="mb-0">
+                    <i class="bi bi-plus-circle me-2"></i>Submit New Safety Report
+                </h5>
             </div>
             <div class="card-body p-4">
-                <form method="POST" action="/report/new" enctype="multipart/form-data">
+                <form method="POST" action="/report/new" enctype="multipart/form-data" id="reportForm">
+                    
                     <div class="mb-3">
-                        <label for="title" class="form-label">Report Title</label>
-                        <input type="text" class="form-control" id="title" name="title" required minlength="5" maxlength="200" placeholder="Brief description of the issue">
+                        <label for="title" class="form-label">
+                            <i class="bi bi-card-heading me-1"></i>Report Title <span class="text-danger">*</span>
+                        </label>
+                        <input type="text" class="form-control" id="title" name="title" placeholder="Brief description of the issue" required minlength="5" maxlength="200">
+                        <small class="text-muted">5-200 characters</small>
                     </div>
+                    
                     <div class="mb-3">
-                        <label for="location" class="form-label">Location</label>
-                        <div class="input-group">
-                            <input type="text" class="form-control" id="location" name="location" required placeholder="e.g., Building A, Room 101">
-                            <button type="button" class="btn btn-outline-secondary" id="scanQrBtn" title="Scan QR Code">
-                                <i class="bi bi-qr-code-scan"></i>
-                            </button>
-                        </div>
+                        <label for="location" class="form-label">
+                            <i class="bi bi-geo-alt me-1"></i>Location <span class="text-danger">*</span>
+                        </label>
+                        <input type="text" class="form-control" id="location" name="location" placeholder="e.g., Building A, 2nd Floor, Room 201" required>
+                        <small class="text-muted">Be as specific as possible.</small>
                     </div>
+                    
                     <div class="mb-3">
-                        <label for="description" class="form-label">Description</label>
-                        <textarea class="form-control" id="description" name="description" rows="4" required minlength="10" placeholder="Detailed description of the issue..."></textarea>
+                        <label for="description" class="form-label">
+                            <i class="bi bi-text-paragraph me-1"></i>Description <span class="text-danger">*</span>
+                        </label>
+                        <textarea class="form-control" id="description" name="description" rows="5" placeholder="Provide detailed information about the issue..." required minlength="10"></textarea>
+                        <small class="text-muted">Minimum 10 characters. Include relevant details that will help address the issue.</small>
                     </div>
+                    
                     <div class="row">
                         <div class="col-md-6 mb-3">
-                            <label for="category" class="form-label">Category</label>
+                            <label for="category" class="form-label">
+                                <i class="bi bi-tag me-1"></i>Category <span class="text-danger">*</span>
+                            </label>
                             <select class="form-select" id="category" name="category" required>
+                                <option value="">Select Category</option>
                                 <option value="Infrastructure">Infrastructure</option>
                                 <option value="Safety Hazard">Safety Hazard</option>
                                 <option value="Electrical">Electrical</option>
@@ -42,7 +55,9 @@
                             </select>
                         </div>
                         <div class="col-md-6 mb-3">
-                            <label for="priority" class="form-label">Priority Level</label>
+                            <label for="priority" class="form-label">
+                                <i class="bi bi-exclamation-circle me-1"></i>Priority Level <span class="text-danger">*</span>
+                            </label>
                             <select class="form-select" id="priority" name="priority" required>
                                 <option value="Low">Low</option>
                                 <option value="Medium" selected>Medium</option>
@@ -50,39 +65,60 @@
                             </select>
                         </div>
                     </div>
-                    <div class="mb-3">
-                        <label for="photo" class="form-label">Photo Evidence (Optional)</label>
-                        <input type="file" class="form-control" id="photo" name="photo" accept="image/*">
-                        <small class="form-text text-muted">Max 5MB. Formats: JPG, PNG, GIF</small>
-                    </div>
-                    <div class="mb-3">
-                        <button type="button" class="btn btn-outline-secondary" id="cameraBtn">
-                            <i class="bi bi-camera me-2"></i>Take Photo
-                        </button>
-                    </div>
-                    <div id="cameraPreview" class="mb-3 d-none">
-                        <video id="video" class="w-100 rounded" autoplay></video>
-                        <div class="mt-2">
-                            <button type="button" class="btn btn-success" id="captureBtn">
-                                <i class="bi bi-camera me-2"></i>Capture
-                            </button>
-                            <button type="button" class="btn btn-secondary" id="closeCameraBtn">
-                                <i class="bi bi-x me-2"></i>Close
-                            </button>
+                    
+                    <div class="mb-4">
+                        <label class="form-label">
+                            <i class="bi bi-camera me-1"></i>Photo Evidence (Optional)
+                        </label>
+                        <div class="row g-2 mb-2">
+                            <div class="col-6">
+                                <button type="button" class="btn btn-outline-primary w-100" id="capturePhotoBtn">
+                                    <i class="bi bi-camera-fill me-2"></i>Take Photo
+                                </button>
+                            </div>
+                            <div class="col-6">
+                                <label class="btn btn-outline-secondary w-100 mb-0" for="photo">
+                                    <i class="bi bi-upload me-2"></i>Upload File
+                                </label>
+                                <input type="file" class="d-none" id="photo" name="photo" accept="image/*">
+                            </div>
                         </div>
-                        <canvas id="canvas" class="d-none"></canvas>
+                        <small class="text-muted">Max 5MB. Supported formats: JPG, PNG, GIF</small>
+                        
+                        <div id="cameraContainer" class="mt-3" style="display: none;">
+                            <div class="card bg-dark">
+                                <div class="card-body p-2">
+                                    <video id="cameraVideo" class="w-100 rounded" style="max-height: 300px;" autoplay playsinline></video>
+                                    <canvas id="cameraCanvas" style="display: none;"></canvas>
+                                    <div class="d-flex gap-2 justify-content-center mt-2">
+                                        <button type="button" class="btn btn-warning" id="takePhotoBtn">
+                                            <i class="bi bi-camera me-1"></i>Capture
+                                        </button>
+                                        <button type="button" class="btn btn-light" id="closeCameraBtn">
+                                            <i class="bi bi-x-circle me-1"></i>Cancel
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div id="imagePreview" class="mt-3" style="display: none;">
+                            <div class="position-relative d-inline-block">
+                                <img id="previewImg" src="" class="img-fluid rounded" style="max-height: 200px;">
+                                <button type="button" class="btn btn-sm btn-danger position-absolute top-0 end-0 m-1" id="removePhotoBtn">
+                                    <i class="bi bi-x"></i>
+                                </button>
+                            </div>
+                        </div>
                     </div>
-                    <div id="photoPreview" class="mb-3 d-none">
-                        <img id="previewImg" class="img-fluid rounded" style="max-height: 200px;">
-                    </div>
-                    <hr>
-                    <div class="d-flex justify-content-between">
-                        <a href="/dashboard" class="btn btn-outline-secondary">
-                            <i class="bi bi-arrow-left me-2"></i>Cancel
-                        </a>
-                        <button type="submit" class="btn btn-primary">
+                    
+                    <div class="d-flex gap-2">
+                        <button type="submit" class="btn btn-warning btn-lg">
                             <i class="bi bi-send me-2"></i>Submit Report
                         </button>
+                        <a href="/dashboard" class="btn btn-outline-secondary btn-lg">
+                            <i class="bi bi-x me-2"></i>Cancel
+                        </a>
                     </div>
                 </form>
             </div>
@@ -90,126 +126,128 @@
     </div>
 </div>
 
-<div class="modal fade" id="qrModal" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog">
+<!-- Confirmation Modal -->
+<div class="modal fade" id="submitConfirmModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title"><i class="bi bi-qr-code-scan me-2"></i>Scan QR Code</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            <div class="modal-header bg-warning">
+                <h5 class="modal-title">
+                    <i class="bi bi-exclamation-triangle me-2"></i>Important Notice
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
             <div class="modal-body">
-                <video id="qrVideo" class="w-100 rounded"></video>
-                <canvas id="qrCanvas" class="d-none"></canvas>
+                <p class="mb-3"><strong>Once you submit this report, you will NOT be able to edit it.</strong></p>
+                <p class="text-muted mb-0">Please review all the information carefully before submitting. Your report will be sent to the maintenance team for review.</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                    <i class="bi bi-arrow-left me-2"></i>Go Back & Review
+                </button>
+                <button type="button" class="btn btn-warning" id="confirmSubmitBtn">
+                    <i class="bi bi-check-circle me-2"></i>Submit Report
+                </button>
             </div>
         </div>
     </div>
 </div>
+
 {% endblock %}
 
-{% block scripts %}
-<script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.min.js"></script>
+{% block extra_js %}
 <script>
-    const cameraBtn = document.getElementById('cameraBtn');
-    const cameraPreview = document.getElementById('cameraPreview');
-    const video = document.getElementById('video');
-    const canvas = document.getElementById('canvas');
-    const captureBtn = document.getElementById('captureBtn');
-    const closeCameraBtn = document.getElementById('closeCameraBtn');
-    const photoInput = document.getElementById('photo');
-    const photoPreview = document.getElementById('photoPreview');
+let cameraStream = null;
+let reportForm = null;
+let confirmModal = null;
+
+document.addEventListener('DOMContentLoaded', function() {
+    reportForm = document.getElementById('reportForm');
+    confirmModal = new bootstrap.Modal(document.getElementById('submitConfirmModal'));
+    
+    // Intercept form submission
+    reportForm.addEventListener('submit', function(e) {
+        e.preventDefault();
+        confirmModal.show();
+    });
+    
+    // Handle confirm button click
+    document.getElementById('confirmSubmitBtn').addEventListener('click', function() {
+        confirmModal.hide();
+        reportForm.submit();
+    });
+});
+
+document.getElementById('photo').addEventListener('change', function(e) {
+    const file = e.target.files[0];
+    if (file) {
+        showImagePreview(file);
+    }
+});
+
+function showImagePreview(file) {
+    const preview = document.getElementById('imagePreview');
     const previewImg = document.getElementById('previewImg');
-    let stream = null;
+    const reader = new FileReader();
+    reader.onload = function(e) {
+        previewImg.src = e.target.result;
+        preview.style.display = 'block';
+    };
+    reader.readAsDataURL(file);
+}
 
-    cameraBtn.addEventListener('click', async () => {
-        try {
-            stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } });
-            video.srcObject = stream;
-            cameraPreview.classList.remove('d-none');
-            cameraBtn.classList.add('d-none');
-        } catch (err) {
-            alert('Camera access denied or not available.');
-        }
-    });
+document.getElementById('removePhotoBtn').addEventListener('click', function() {
+    document.getElementById('photo').value = '';
+    document.getElementById('imagePreview').style.display = 'none';
+    document.getElementById('previewImg').src = '';
+});
 
-    captureBtn.addEventListener('click', () => {
-        canvas.width = video.videoWidth;
-        canvas.height = video.videoHeight;
-        canvas.getContext('2d').drawImage(video, 0, 0);
-        canvas.toBlob(blob => {
-            const file = new File([blob], 'camera-photo.jpg', { type: 'image/jpeg' });
-            const dataTransfer = new DataTransfer();
-            dataTransfer.items.add(file);
-            photoInput.files = dataTransfer.files;
-            previewImg.src = canvas.toDataURL('image/jpeg');
-            photoPreview.classList.remove('d-none');
-        }, 'image/jpeg', 0.85);
-        closeCamera();
-    });
-
-    closeCameraBtn.addEventListener('click', closeCamera);
-
-    function closeCamera() {
-        if (stream) {
-            stream.getTracks().forEach(track => track.stop());
-            stream = null;
-        }
-        cameraPreview.classList.add('d-none');
-        cameraBtn.classList.remove('d-none');
+document.getElementById('capturePhotoBtn').addEventListener('click', async function() {
+    const cameraContainer = document.getElementById('cameraContainer');
+    const video = document.getElementById('cameraVideo');
+    
+    try {
+        cameraStream = await navigator.mediaDevices.getUserMedia({ 
+            video: { facingMode: 'environment' },
+            audio: false 
+        });
+        video.srcObject = cameraStream;
+        cameraContainer.style.display = 'block';
+    } catch (err) {
+        alert('Could not access camera. Please use file upload instead.');
+        console.error('Camera error:', err);
     }
+});
 
-    photoInput.addEventListener('change', (e) => {
-        if (e.target.files[0]) {
-            const reader = new FileReader();
-            reader.onload = (e) => {
-                previewImg.src = e.target.result;
-                photoPreview.classList.remove('d-none');
-            };
-            reader.readAsDataURL(e.target.files[0]);
-        }
-    });
+document.getElementById('closeCameraBtn').addEventListener('click', function() {
+    stopCamera();
+});
 
-    const scanQrBtn = document.getElementById('scanQrBtn');
-    const qrModal = new bootstrap.Modal(document.getElementById('qrModal'));
-    const qrVideo = document.getElementById('qrVideo');
-    const qrCanvas = document.getElementById('qrCanvas');
-    let qrStream = null;
+document.getElementById('takePhotoBtn').addEventListener('click', function() {
+    const video = document.getElementById('cameraVideo');
+    const canvas = document.getElementById('cameraCanvas');
+    const context = canvas.getContext('2d');
+    
+    canvas.width = video.videoWidth;
+    canvas.height = video.videoHeight;
+    context.drawImage(video, 0, 0);
+    
+    canvas.toBlob(function(blob) {
+        const file = new File([blob], 'camera_photo.jpg', { type: 'image/jpeg' });
+        const dataTransfer = new DataTransfer();
+        dataTransfer.items.add(file);
+        document.getElementById('photo').files = dataTransfer.files;
+        showImagePreview(file);
+        stopCamera();
+    }, 'image/jpeg', 0.85);
+});
 
-    scanQrBtn.addEventListener('click', async () => {
-        try {
-            qrStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } });
-            qrVideo.srcObject = qrStream;
-            qrVideo.play();
-            qrModal.show();
-            scanQR();
-        } catch (err) {
-            alert('Camera access denied or not available.');
-        }
-    });
-
-    function scanQR() {
-        if (!qrStream) return;
-        qrCanvas.width = qrVideo.videoWidth;
-        qrCanvas.height = qrVideo.videoHeight;
-        const ctx = qrCanvas.getContext('2d');
-        ctx.drawImage(qrVideo, 0, 0, qrCanvas.width, qrCanvas.height);
-        const imageData = ctx.getImageData(0, 0, qrCanvas.width, qrCanvas.height);
-        const code = jsQR(imageData.data, imageData.width, imageData.height);
-        if (code) {
-            document.getElementById('location').value = code.data;
-            stopQR();
-            qrModal.hide();
-        } else {
-            requestAnimationFrame(scanQR);
-        }
+function stopCamera() {
+    if (cameraStream) {
+        cameraStream.getTracks().forEach(track => track.stop());
+        cameraStream = null;
     }
+    document.getElementById('cameraContainer').style.display = 'none';
+}
 
-    document.getElementById('qrModal').addEventListener('hidden.bs.modal', stopQR);
-
-    function stopQR() {
-        if (qrStream) {
-            qrStream.getTracks().forEach(track => track.stop());
-            qrStream = null;
-        }
-    }
 </script>
 {% endblock %}

@@ -1,148 +1,200 @@
 {% extends "base.html" %}
 
-{% block title %}Help & FAQ - Alisto!{% endblock %}
+{% block title %}Help & Support{% endblock %}
 
 {% block content %}
-<div class="row justify-content-center">
-    <div class="col-lg-10">
-        <h2 class="mb-4"><i class="bi bi-question-circle me-2"></i>Help & Frequently Asked Questions</h2>
-
-        <div class="card mb-4">
-            <div class="card-header bg-primary text-white">
-                <h5 class="mb-0"><i class="bi bi-info-circle me-2"></i>About Alisto!</h5>
-            </div>
-            <div class="card-body">
-                <p>Alisto! is the official campus safety reporting system for Eastern Visayas State University - Ormoc Campus (EVSU-OC). It allows students and faculty to report safety concerns and maintenance issues in real-time, ensuring a safer campus environment for everyone.</p>
-            </div>
-        </div>
-
-        <div class="accordion" id="faqAccordion">
-            <div class="accordion-item">
+<div class="row">
+    <div class="col-lg-8">
+        <h2 class="text-primary mb-4">
+            <i class="bi bi-question-circle me-2"></i>Help & Support
+        </h2>
+        
+        <div class="accordion" id="helpAccordion">
+            <div class="accordion-item border-0 shadow-sm mb-3">
                 <h2 class="accordion-header">
                     <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#faq1">
-                        How do I submit a report?
+                        <i class="bi bi-pencil-square me-2 text-primary"></i>How do I submit a report?
                     </button>
                 </h2>
-                <div id="faq1" class="accordion-collapse collapse show" data-bs-parent="#faqAccordion">
+                <div id="faq1" class="accordion-collapse collapse show" data-bs-parent="#helpAccordion">
                     <div class="accordion-body">
                         <ol>
-                            <li>Log in to your account (or register if you don't have one)</li>
-                            <li>Click "New Report" in the navigation menu</li>
-                            <li>Fill out the report form with details about the issue</li>
-                            <li>Optionally add a photo as evidence</li>
+                            <li>Click on <strong>"New Report"</strong> in the navigation menu</li>
+                            <li>Fill in the report title with a brief description of the issue</li>
+                            <li>Enter the specific location of the problem</li>
+                            <li>Provide a detailed description (at least 10 characters)</li>
                             <li>Select the appropriate category and priority level</li>
-                            <li>Click "Submit Report"</li>
+                            <li>Optionally upload a photo as evidence (max 5MB)</li>
+                            <li>Click <strong>"Submit Report"</strong></li>
                         </ol>
-                        <p>You'll receive a unique ticket ID to track your report's progress.</p>
+                        <p class="mb-0">You'll receive a <strong>Ticket ID</strong> after submission - save this for tracking!</p>
                     </div>
                 </div>
             </div>
-
-            <div class="accordion-item">
+            
+            <div class="accordion-item border-0 shadow-sm mb-3">
                 <h2 class="accordion-header">
                     <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#faq2">
-                        How do I track my report?
+                        <i class="bi bi-search me-2 text-primary"></i>How do I track my report?
                     </button>
                 </h2>
-                <div id="faq2" class="accordion-collapse collapse" data-bs-parent="#faqAccordion">
+                <div id="faq2" class="accordion-collapse collapse" data-bs-parent="#helpAccordion">
                     <div class="accordion-body">
-                        <p>There are two ways to track your report:</p>
+                        <p>There are two ways to track your reports:</p>
                         <ul>
-                            <li><strong>If logged in:</strong> Go to "My Reports" to see all your submissions and their current status.</li>
-                            <li><strong>Using Ticket ID:</strong> Use the "Track Report" feature and enter your ticket ID (e.g., ALT-20251202-ABC123).</li>
+                            <li><strong>Dashboard:</strong> View all your recent reports directly on your dashboard</li>
+                            <li><strong>Track Report:</strong> Use the "Track Report" feature and enter your Ticket ID</li>
                         </ul>
+                        <p class="mb-0">You'll also receive email notifications when your report status changes.</p>
                     </div>
                 </div>
             </div>
-
-            <div class="accordion-item">
+            
+            <div class="accordion-item border-0 shadow-sm mb-3">
                 <h2 class="accordion-header">
                     <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#faq3">
-                        What do the status types mean?
+                        <i class="bi bi-flag me-2 text-primary"></i>What do the report statuses mean?
                     </button>
                 </h2>
-                <div id="faq3" class="accordion-collapse collapse" data-bs-parent="#faqAccordion">
+                <div id="faq3" class="accordion-collapse collapse" data-bs-parent="#helpAccordion">
                     <div class="accordion-body">
-                        <ul>
-                            <li><span class="badge bg-warning text-dark">Pending</span> - Your report has been received and is awaiting review.</li>
-                            <li><span class="badge bg-info">In Progress</span> - The maintenance team is actively working on the issue.</li>
-                            <li><span class="badge bg-success">Resolved</span> - The issue has been fixed. Please provide feedback!</li>
+                        <ul class="list-unstyled">
+                            <li class="mb-2">
+                                <span class="badge bg-warning text-dark me-2">Pending</span>
+                                Report has been submitted and is awaiting review by the maintenance team
+                            </li>
+                            <li class="mb-2">
+                                <span class="badge bg-info me-2">In Progress</span>
+                                The maintenance team is actively working on resolving the issue
+                            </li>
+                            <li class="mb-0">
+                                <span class="badge bg-success me-2">Resolved</span>
+                                The issue has been fixed. You can now provide feedback!
+                            </li>
                         </ul>
                     </div>
                 </div>
             </div>
-
-            <div class="accordion-item">
+            
+            <div class="accordion-item border-0 shadow-sm mb-3">
                 <h2 class="accordion-header">
                     <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#faq4">
-                        What are the report categories?
+                        <i class="bi bi-star me-2 text-primary"></i>How do I provide feedback?
                     </button>
                 </h2>
-                <div id="faq4" class="accordion-collapse collapse" data-bs-parent="#faqAccordion">
+                <div id="faq4" class="accordion-collapse collapse" data-bs-parent="#helpAccordion">
                     <div class="accordion-body">
-                        <ul>
-                            <li><strong>Infrastructure</strong> - Building damage, broken facilities, structural issues</li>
-                            <li><strong>Safety Hazard</strong> - Dangerous conditions, obstacles, tripping hazards</li>
-                            <li><strong>Electrical</strong> - Broken lights, exposed wires, outlet issues</li>
-                            <li><strong>Plumbing</strong> - Leaks, clogged drains, water pressure problems</li>
-                            <li><strong>Sanitation</strong> - Cleanliness issues, waste disposal, pest control</li>
-                            <li><strong>Security</strong> - Broken locks, unauthorized access, safety concerns</li>
-                            <li><strong>Other</strong> - Any issue that doesn't fit the above categories</li>
+                        <p>Once your report is marked as <strong>Resolved</strong>:</p>
+                        <ol>
+                            <li>Go to the report details page</li>
+                            <li>You'll see a feedback form at the bottom</li>
+                            <li>Rate your experience (1-5 stars)</li>
+                            <li>Add any comments (optional)</li>
+                            <li>Confirm if the issue was actually resolved</li>
+                            <li>Click "Submit Feedback"</li>
+                        </ol>
+                        <p class="mb-0">Your feedback helps us improve campus safety services!</p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="accordion-item border-0 shadow-sm mb-3">
+                <h2 class="accordion-header">
+                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#faq5">
+                        <i class="bi bi-exclamation-triangle me-2 text-primary"></i>What priority level should I choose?
+                    </button>
+                </h2>
+                <div id="faq5" class="accordion-collapse collapse" data-bs-parent="#helpAccordion">
+                    <div class="accordion-body">
+                        <ul class="list-unstyled">
+                            <li class="mb-2">
+                                <span class="badge bg-info me-2">Low</span>
+                                Minor issues that don't require immediate attention (e.g., small cosmetic damage)
+                            </li>
+                            <li class="mb-2">
+                                <span class="badge bg-warning text-dark me-2">Medium</span>
+                                Issues that should be addressed soon but aren't urgent (e.g., broken fixtures)
+                            </li>
+                            <li class="mb-0">
+                                <span class="badge bg-danger me-2">High</span>
+                                Urgent safety concerns that need immediate attention (e.g., exposed wiring, flooding)
+                            </li>
                         </ul>
                     </div>
                 </div>
             </div>
-
-            <div class="accordion-item">
-                <h2 class="accordion-header">
-                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#faq5">
-                        How do I use the QR code scanner?
-                    </button>
-                </h2>
-                <div id="faq5" class="accordion-collapse collapse" data-bs-parent="#faqAccordion">
-                    <div class="accordion-body">
-                        <p>When submitting a new report, click the QR code icon next to the location field. This will open your device's camera. Point it at a location QR code posted around campus, and the location will be automatically filled in.</p>
-                    </div>
-                </div>
-            </div>
-
-            <div class="accordion-item">
+            
+            <div class="accordion-item border-0 shadow-sm mb-3">
                 <h2 class="accordion-header">
                     <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#faq6">
-                        Why can't I submit more reports?
+                        <i class="bi bi-camera me-2 text-primary"></i>Photo upload requirements
                     </button>
                 </h2>
-                <div id="faq6" class="accordion-collapse collapse" data-bs-parent="#faqAccordion">
+                <div id="faq6" class="accordion-collapse collapse" data-bs-parent="#helpAccordion">
                     <div class="accordion-body">
-                        <p>To prevent spam and ensure quality reports, there's a limit of 5 reports per user per 24 hours. Additionally, you cannot submit duplicate reports (same title and location) within 24 hours.</p>
+                        <ul>
+                            <li>Maximum file size: <strong>5MB</strong></li>
+                            <li>Supported formats: <strong>JPG, JPEG, PNG, GIF</strong></li>
+                            <li>Photos are automatically resized for optimal storage</li>
+                            <li>Photos are optional but highly recommended for faster resolution</li>
+                        </ul>
                     </div>
                 </div>
             </div>
-
-            <div class="accordion-item">
+            
+            <div class="accordion-item border-0 shadow-sm mb-3">
                 <h2 class="accordion-header">
                     <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#faq7">
-                        How do I reset my password?
+                        <i class="bi bi-key me-2 text-primary"></i>I forgot my password
                     </button>
                 </h2>
-                <div id="faq7" class="accordion-collapse collapse" data-bs-parent="#faqAccordion">
+                <div id="faq7" class="accordion-collapse collapse" data-bs-parent="#helpAccordion">
                     <div class="accordion-body">
                         <ol>
-                            <li>Click "Forgot password?" on the login page</li>
+                            <li>Click "Forgot Password?" on the login page</li>
                             <li>Enter your registered email address</li>
                             <li>Check your email for a password reset link</li>
                             <li>Click the link and create a new password</li>
                         </ol>
-                        <p>Note: The reset link expires after 1 hour for security reasons.</p>
+                        <p class="mb-0"><strong>Note:</strong> The reset link expires after 1 hour. Check your spam folder if you don't receive the email.</p>
                     </div>
                 </div>
             </div>
         </div>
-
-        <div class="card mt-4">
-            <div class="card-body text-center">
-                <h5>Still need help?</h5>
-                <p class="text-muted">Contact the EVSU-OC IT Support team or visit the General Services Office.</p>
+    </div>
+    
+    <div class="col-lg-4">
+        <div class="card border-0 shadow-sm mb-4">
+            <div class="card-header bg-primary text-white py-3">
+                <h5 class="mb-0"><i class="bi bi-list-check me-2"></i>Report Categories</h5>
+            </div>
+            <div class="card-body">
+                <ul class="list-unstyled mb-0">
+                    <li class="mb-2"><i class="bi bi-building me-2 text-primary"></i><strong>Infrastructure</strong> - Building damage, structural issues</li>
+                    <li class="mb-2"><i class="bi bi-exclamation-triangle me-2 text-danger"></i><strong>Safety Hazard</strong> - Immediate safety risks</li>
+                    <li class="mb-2"><i class="bi bi-lightning me-2 text-warning"></i><strong>Electrical</strong> - Power, lighting, outlets</li>
+                    <li class="mb-2"><i class="bi bi-droplet me-2 text-info"></i><strong>Plumbing</strong> - Water, pipes, drains</li>
+                    <li class="mb-2"><i class="bi bi-trash me-2 text-success"></i><strong>Sanitation</strong> - Cleanliness, waste</li>
+                    <li class="mb-2"><i class="bi bi-shield-lock me-2 text-secondary"></i><strong>Security</strong> - Access, locks, cameras</li>
+                    <li class="mb-0"><i class="bi bi-three-dots me-2 text-muted"></i><strong>Other</strong> - Other issues</li>
+                </ul>
+            </div>
+        </div>
+        
+        <div class="card border-0 shadow-sm">
+            <div class="card-header bg-warning text-dark py-3">
+                <h5 class="mb-0"><i class="bi bi-telephone me-2"></i>Contact Support</h5>
+            </div>
+            <div class="card-body">
+                <p class="mb-2">For urgent matters or technical issues:</p>
+                <p class="mb-2">
+                    <i class="bi bi-building me-2 text-primary"></i>
+                    EVSU-OC Maintenance Office
+                </p>
+                <p class="mb-0 text-muted small">
+                    <i class="bi bi-clock me-2"></i>
+                    Office Hours: Mon-Fri, 8:00 AM - 5:00 PM
+                </p>
             </div>
         </div>
     </div>

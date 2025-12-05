@@ -51,7 +51,7 @@ class Report(Base):
     __tablename__ = 'reports'
     
     id = Column(Integer, primary_key=True)
-    ticket_id = Column(String(20), unique=True, nullable=False)
+    ticket_id = Column(String(50), unique=True, nullable=False)
     title = Column(String(200), nullable=False)
     location = Column(String(200), nullable=False)
     description = Column(Text, nullable=False)
@@ -118,7 +118,7 @@ class Notification(Base):
     type = Column(String(50), nullable=False)
     user_student_id = Column(String(20), nullable=False)
     user_name = Column(String(120), nullable=False)
-    report_ticket_id = Column(String(20), nullable=True)
+    report_ticket_id = Column(String(50), nullable=True)
     report_title = Column(String(200), nullable=True)
     deletion_reason = Column(Text, nullable=True)
     is_read = Column(Boolean, default=False)

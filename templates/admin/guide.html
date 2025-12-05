@@ -1,0 +1,146 @@
+{% extends "base.html" %}
+
+{% block title %}Admin Guide{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="row justify-content-center">
+        <div class="col-lg-10">
+            <div class="text-center mb-5">
+                <h1 class="display-5 text-primary mb-3">
+                    <i class="bi bi-shield-check me-3"></i>Admin Guide
+                </h1>
+                <p class="lead text-muted">Complete guide for managing the Alisto Safety Reporting System</p>
+            </div>
+
+            <div class="card border-0 shadow-sm mb-4">
+                <div class="card-header bg-primary text-white py-3">
+                    <h4 class="mb-0"><i class="bi bi-speedometer2 me-2"></i>Dashboard Overview</h4>
+                </div>
+                <div class="card-body">
+                    <p>The admin dashboard provides a real-time overview of all safety reports:</p>
+                    <ul>
+                        <li><strong>Total Users:</strong> Number of registered users in the system</li>
+                        <li><strong>Pending Reports:</strong> Reports awaiting review</li>
+                        <li><strong>In Progress Reports:</strong> Reports currently being addressed</li>
+                        <li><strong>Resolved Reports:</strong> Completed reports</li>
+                        <li><strong>User Satisfaction:</strong> Average rating from user feedback</li>
+                        <li><strong>Charts:</strong> Visual breakdown by category and priority</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="card border-0 shadow-sm mb-4">
+                <div class="card-header bg-info text-white py-3">
+                    <h4 class="mb-0"><i class="bi bi-clipboard-data me-2"></i>Managing Reports</h4>
+                </div>
+                <div class="card-body">
+                    <h5 class="text-primary mb-3">Report Status Flow</h5>
+                    <div class="alert alert-info">
+                        <strong>Status Progression:</strong> Pending → In Progress → Resolved
+                        <br><small class="text-muted">Note: Status can only move forward, not backwards</small>
+                    </div>
+                    
+                    <h5 class="text-primary mb-3 mt-4">How to Update a Report</h5>
+                    <ol>
+                        <li>Click on a report from the dashboard or reports list</li>
+                        <li>Review the report details and reporter information</li>
+                        <li>Update the <strong>Status</strong> (Pending/In Progress/Resolved)</li>
+                        <li>Adjust <strong>Priority</strong> if needed (Low/Medium/High)</li>
+                        <li>Add <strong>Admin Notes</strong> to communicate with the reporter</li>
+                        <li>When marking as <strong>Resolved</strong>, upload proof/evidence (required)</li>
+                        <li>Click "Update Report" to save changes</li>
+                    </ol>
+
+                    <div class="alert alert-warning mt-3">
+                        <i class="bi bi-exclamation-triangle me-2"></i>
+                        <strong>Important:</strong> Once a report is marked as "Resolved", it cannot be edited or reverted.
+                    </div>
+                </div>
+            </div>
+
+            <div class="card border-0 shadow-sm mb-4">
+                <div class="card-header bg-success text-white py-3">
+                    <h4 class="mb-0"><i class="bi bi-people me-2"></i>User Management</h4>
+                </div>
+                <div class="card-body">
+                    <h5 class="text-primary mb-3">User Actions</h5>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <p><i class="bi bi-person-x text-danger me-2"></i><strong>Deactivate User:</strong> Temporarily disable a user account</p>
+                            <p><i class="bi bi-person-check text-success me-2"></i><strong>Activate User:</strong> Re-enable a deactivated account</p>
+                        </div>
+                        <div class="col-md-6">
+                            <p><i class="bi bi-shield-plus text-warning me-2"></i><strong>Grant Admin:</strong> Give admin privileges to a user</p>
+                            <p><i class="bi bi-shield-minus text-secondary me-2"></i><strong>Remove Admin:</strong> Revoke admin privileges</p>
+                        </div>
+                    </div>
+                    
+                    <h5 class="text-primary mb-3 mt-4">User Categories</h5>
+                    <ul>
+                        <li><strong>All Users:</strong> View all registered users</li>
+                        <li><strong>Students:</strong> Filter by student accounts</li>
+                        <li><strong>Faculty:</strong> Filter by faculty accounts</li>
+                        <li><strong>Admins:</strong> View all admin accounts</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="card border-0 shadow-sm mb-4">
+                <div class="card-header bg-warning text-dark py-3">
+                    <h4 class="mb-0"><i class="bi bi-bell me-2"></i>Notifications</h4>
+                </div>
+                <div class="card-body">
+                    <p>Admins receive notifications for:</p>
+                    <ul>
+                        <li><strong>New Reports:</strong> When users submit new safety reports</li>
+                        <li><strong>Report Deletions:</strong> When users delete their pending reports</li>
+                        <li><strong>User Feedback:</strong> When users provide feedback on resolved reports</li>
+                    </ul>
+                    <p class="mb-0">Click the bell icon in the navigation bar to view and manage notifications.</p>
+                </div>
+            </div>
+
+            <div class="card border-0 shadow-sm mb-4">
+                <div class="card-header bg-secondary text-white py-3">
+                    <h4 class="mb-0"><i class="bi bi-search me-2"></i>Search & Filters</h4>
+                </div>
+                <div class="card-body">
+                    <h5 class="text-primary mb-3">Reports Page</h5>
+                    <p>Use filters to find specific reports:</p>
+                    <ul>
+                        <li><strong>Keyword Search:</strong> Search by title, description, location, or ticket ID</li>
+                        <li><strong>Category Filter:</strong> Filter by report category</li>
+                        <li><strong>Priority Filter:</strong> Filter by priority level</li>
+                        <li><strong>Status Filter:</strong> Filter by current status</li>
+                        <li><strong>Sort Options:</strong> Sort by newest, oldest, or priority</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-danger text-white py-3">
+                    <h4 class="mb-0"><i class="bi bi-exclamation-octagon me-2"></i>Best Practices</h4>
+                </div>
+                <div class="card-body">
+                    <ul class="mb-0">
+                        <li>Review new reports promptly to maintain user trust</li>
+                        <li>Update report status regularly to keep users informed</li>
+                        <li>Add clear admin notes explaining actions taken</li>
+                        <li>Always upload proof when marking reports as resolved</li>
+                        <li>Prioritize high-priority and safety-critical reports</li>
+                        <li>Monitor user feedback to improve response quality</li>
+                        <li>Keep user information confidential</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="text-center mt-5">
+                <a href="/admin/dashboard" class="btn btn-primary btn-lg">
+                    <i></i>Back to Dashboard
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

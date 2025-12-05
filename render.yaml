@@ -1,0 +1,19 @@
+services:
+  - type: web
+    name: alisto-campus-safety
+    env: python
+    buildCommand: pip install -r requirements.txt
+    startCommand: uvicorn app:app --host 0.0.0.0 --port $PORT
+    envVars:
+      - key: DATABASE_URL
+        sync: false
+      - key: SESSION_SECRET
+        generateValue: true
+      - key: GMAIL_USER
+        sync: false
+      - key: GMAIL_APP_PASSWORD
+        sync: false
+      - key: ADMIN_STUDENT_IDS
+        value: 2024-00001,2024-00002
+      - key: DEBUG
+        value: False

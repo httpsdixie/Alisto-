@@ -1,15 +1,22 @@
 {% extends "base.html" %}
 
-{% block title %}Page Not Found - Alisto!{% endblock %}
+{% block title %}Page Not Found{% endblock %}
 
 {% block content %}
 <div class="text-center py-5">
-    <i class="bi bi-exclamation-triangle display-1 text-warning mb-4"></i>
-    <h1 class="display-4">404</h1>
+    <div class="mb-4">
+        <i class="bi bi-exclamation-triangle display-1 text-warning"></i>
+    </div>
+    <h1 class="display-4 text-primary">404</h1>
     <h2 class="mb-4">Page Not Found</h2>
     <p class="text-muted mb-4">The page you're looking for doesn't exist or has been moved.</p>
-    <a href="/" class="btn btn-primary btn-lg">
-        <i class="bi bi-house me-2"></i>Go Home
-    </a>
+    <div class="d-flex gap-3 justify-content-center">
+        <a href="/" class="btn btn-primary">
+            <i class="bi bi-house me-2"></i>Go Home
+        </a>
+        <a href="javascript:history.back()" class="btn btn-outline-secondary">
+            <i class="bi bi-arrow-left me-2"></i>Go Back
+        </a>
+    </div>
 </div>
 {% endblock %}
