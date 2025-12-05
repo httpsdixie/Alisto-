@@ -793,6 +793,12 @@ async def view_report(
     status_history = db.query(StatusHistory).filter_by(report_id=report_id).order_by(StatusHistory.created_at.desc()).all()
     reporter = db.query(User).filter_by(id=report.user_id).first()
     
+    # Debug: Print status history for this report
+    print(f"DEBUG: Viewing report {report_id} (Ticket: {report.ticket_id})")
+    print(f"DEBUG: Found {len(status_history)} status history entries:")
+    for h in status_history:
+        print(f"  - Report ID: {h.report_id}, {h.old_status} → {h.new_status}, by {h.changed_by.full_name}")
+    
     flash_message = request.cookies.get("flash_message", "")
     return templates.TemplateResponse("reports/view_report.html", {
         "request": request,
