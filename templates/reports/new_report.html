@@ -9,8 +9,8 @@
         <div class="spinner-border" role="status" style="width: 4rem; height: 4rem;">
             <span class="visually-hidden">Loading...</span>
         </div>
-        <h4 class="mt-3">Submitting your report...</h4>
-        <p>Almost done!</p>
+        <h4 class="mt-3">Uploading your report...</h4>
+        <p>Please wait, this may take a moment.</p>
     </div>
 </div>
 
@@ -184,86 +184,20 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 });
 
-async function handlePhotoChange(e) {
+function handlePhotoChange(e) {
     const file = e.target.files[0];
-    if (file && file.type.startsWith('image/')) {
-        // Compress image on client side before upload
-        const compressedFile = await compressImage(file);
-        
-        // Replace the file input with compressed version
-        const dataTransfer = new DataTransfer();
-        dataTransfer.items.add(compressedFile);
-        
+    if (file) {
+        // Sync the file to the form (use camera input as primary)
         const cameraInput = document.getElementById('photoCamera');
         const uploadInput = document.getElementById('photoUpload');
         
-        // Set compressed file to both inputs
-        cameraInput.files = dataTransfer.files;
         if (e.target.id === 'photoUpload') {
-            uploadInput.files = dataTransfer.files;
+            // Copy from upload to camera input
+            cameraInput.files = uploadInput.files;
         }
         
-        showImagePreview(compressedFile);
-    } else if (file) {
         showImagePreview(file);
     }
-}
-
-async function compressImage(file) {
-    return new Promise((resolve) => {
-        const reader = new FileReader();
-        reader.onload = function(e) {
-            const img = new Image();
-            img.onload = function() {
-                const canvas = document.createElement('canvas');
-                let width = img.width;
-                let height = img.height;
-                
-                // More aggressive resize: 600x600 for faster upload
-                const maxSize = 600;
-                if (width > height && width > maxSize) {
-                    height = (height * maxSize) / width;
-                    width = maxSize;
-                } else if (height > maxSize) {
-                    width = (width * maxSize) / height;
-                    height = maxSize;
-                }
-                
-                canvas.width = width;
-                canvas.height = height;
-                
-                const ctx = canvas.getContext('2d');
-                ctx.drawImage(img, 0, 0, width, height);
-                
-                // Try WebP first (smaller files), fallback to JPEG
-                const supportsWebP = canvas.toDataURL('image/webp').indexOf('data:image/webp') === 0;
-                
-                if (supportsWebP) {
-                    // WebP: 30% smaller than JPEG
-                    canvas.toBlob((blob) => {
-                        const compressedFile = new File([blob], file.name.replace(/\.[^/.]+$/, '.webp'), {
-                            type: 'image/webp',
-                            lastModified: Date.now()
-                        });
-                        console.log(`Compressed (WebP): ${(file.size / 1024).toFixed(0)}KB → ${(compressedFile.size / 1024).toFixed(0)}KB`);
-                        resolve(compressedFile);
-                    }, 'image/webp', 0.6); // 60% quality WebP
-                } else {
-                    // Fallback to JPEG with lower quality
-                    canvas.toBlob((blob) => {
-                        const compressedFile = new File([blob], file.name, {
-                            type: 'image/jpeg',
-                            lastModified: Date.now()
-                        });
-                        console.log(`Compressed (JPEG): ${(file.size / 1024).toFixed(0)}KB → ${(compressedFile.size / 1024).toFixed(0)}KB`);
-                        resolve(compressedFile);
-                    }, 'image/jpeg', 0.6); // 60% quality JPEG
-                }
-            };
-            img.src = e.target.result;
-        };
-        reader.readAsDataURL(file);
-    });
 }
 
 function showImagePreview(file) {
