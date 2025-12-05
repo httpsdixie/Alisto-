@@ -16,7 +16,7 @@ if settings.USE_CLOUDINARY:
         secure=True
     )
 
-async def save_to_cloudinary(file: UploadFile, folder: str = "alisto_uploads") -> Optional[str]:
+async def save_to_cloudinary(file: UploadFile, contents: bytes = None, folder: str = "alisto_uploads") -> Optional[str]:
     """
     Upload file to Cloudinary and return the public URL
     """
@@ -25,14 +25,16 @@ async def save_to_cloudinary(file: UploadFile, folder: str = "alisto_uploads") -
         return None
     
     try:
-        contents = await file.read()
+        if contents is None:
+            contents = await file.read()
         
         # Upload to Cloudinary
         result = cloudinary.uploader.upload(
             contents,
             folder=folder,
-            resource_type="auto",  # Handles images and PDFs
-            allowed_formats=["jpg", "jpeg", "png", "gif", "pdf"]
+            resource_type="image",
+            format="jpg",
+            quality="auto:good"
         )
         
         # Return the secure URL

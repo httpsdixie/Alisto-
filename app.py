@@ -69,7 +69,7 @@ async def add_security_headers(request: Request, call_next):
     response.headers['X-Frame-Options'] = 'SAMEORIGIN'
     response.headers['X-XSS-Protection'] = '1; mode=block'
     response.headers['Strict-Transport-Security'] = 'max-age=31536000; includeSubDomains'
-    response.headers['Content-Security-Policy'] = "default-src 'self'; script-src 'self' 'unsafe-inline' cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' cdn.jsdelivr.net fonts.googleapis.com; img-src 'self' data:; font-src 'self' cdn.jsdelivr.net fonts.gstatic.com"
+    response.headers['Content-Security-Policy'] = "default-src 'self'; script-src 'self' 'unsafe-inline' cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' cdn.jsdelivr.net fonts.googleapis.com; img-src 'self' data: https://res.cloudinary.com; font-src 'self' cdn.jsdelivr.net fonts.gstatic.com"
     response.headers['Referrer-Policy'] = 'strict-origin-when-cross-origin'
     response.headers['Cache-Control'] = 'no-cache, no-store, must-revalidate'
     return response
@@ -95,15 +95,36 @@ async def save_photo(file: UploadFile) -> Optional[str]:
             # Check file size first
             contents = await file.read()
             if len(contents) > 5 * 1024 * 1024:
+                print("File too large")
                 return None
             
-            # Reset file pointer for re-reading
-            await file.seek(0)
+            # Compress images before uploading (for both Cloudinary and local)
+            import io
+            filename = file.filename.lower()
+            
+            if not filename.endswith('.pdf'):
+                # Compress image to reduce upload time
+                img = Image.open(io.BytesIO(contents))
+                
+                # Convert RGBA to RGB for JPEG
+                if img.mode == 'RGBA':
+                    img = img.convert('RGB')
+                
+                img.thumbnail((1200, 1200))
+                
+                # Save compressed image to bytes
+                output = io.BytesIO()
+                # Always save as JPEG for better compression
+                img.save(output, format='JPEG', quality=85, optimize=True)
+                contents = output.getvalue()
+                print(f"Compressed image to {len(contents)} bytes")
             
             # Use Cloudinary if configured, otherwise save locally
             if settings.USE_CLOUDINARY:
+                print(f"Using Cloudinary for upload: {file.filename}")
                 from cloudinary_storage import save_to_cloudinary
-                url = await save_to_cloudinary(file)
+                url = await save_to_cloudinary(file, contents)
+                print(f"Cloudinary URL: {url}")
                 return url
             else:
                 # Local storage fallback
@@ -111,17 +132,8 @@ async def save_photo(file: UploadFile) -> Optional[str]:
                 unique_filename = f"{uuid.uuid4().hex}_{filename}"
                 filepath = os.path.join(settings.UPLOAD_FOLDER, unique_filename)
                 
-                # Check if it's a PDF file
-                if filename.lower().endswith('.pdf'):
-                    # Save PDF directly without processing
-                    with open(filepath, 'wb') as f:
-                        f.write(contents)
-                else:
-                    # Process image files
-                    import io
-                    img = Image.open(io.BytesIO(contents))
-                    img.thumbnail((1200, 1200))
-                    img.save(filepath, quality=85, optimize=True)
+                with open(filepath, 'wb') as f:
+                    f.write(contents)
                 
                 return unique_filename
     except Exception as e:
