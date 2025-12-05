@@ -1,11 +1,13 @@
 from datetime import datetime
 from sqlalchemy import Column, Integer, String, Text, Boolean, DateTime, ForeignKey
 from sqlalchemy.orm import relationship
-from werkzeug.security import generate_password_hash, check_password_hash
+from passlib.context import CryptContext
 from itsdangerous import URLSafeTimedSerializer
 import uuid
 
 from database import Base
+
+pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
 class User(Base):
     __tablename__ = 'users'
@@ -26,10 +28,10 @@ class User(Base):
     feedbacks = relationship('Feedback', backref='user', lazy='dynamic')
     
     def set_password(self, password):
-        self.password_hash = generate_password_hash(password)
+        self.password_hash = pwd_context.hash(password)
     
     def check_password(self, password):
-        return check_password_hash(self.password_hash, password)
+        return pwd_context.verify(password, self.password_hash)
     
     def generate_reset_token(self, secret_key):
         serializer = URLSafeTimedSerializer(secret_key)
@@ -78,8 +80,8 @@ class Report(Base):
     
     @staticmethod
     def generate_ticket_id():
-        timestamp = datetime.utcnow().strftime('%Y%m%d')
-        unique_part = uuid.uuid4().hex[:6].upper()
+        timestamp = datetime.utcnow().strftime('%Y%m%d%H%M%S')
+        unique_part = uuid.uuid4().hex[:8].upper()
         return f"ALT-{timestamp}-{unique_part}"
 
 
