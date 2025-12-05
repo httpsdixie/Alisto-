@@ -28,13 +28,13 @@ async def save_to_cloudinary(file: UploadFile, contents: bytes = None, folder: s
         if contents is None:
             contents = await file.read()
         
-        # Upload to Cloudinary
+        # Upload to Cloudinary with auto format detection
         result = cloudinary.uploader.upload(
             contents,
             folder=folder,
             resource_type="image",
-            format="jpg",
-            quality="auto:good"
+            format="auto",  # Auto-detect WebP or JPEG
+            quality="auto:eco"  # Eco quality for faster processing
         )
         
         # Return the secure URL

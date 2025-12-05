@@ -179,19 +179,24 @@ async def save_photo(file: UploadFile) -> Optional[str]:
                 # Aggressive compression for faster upload
                 img = Image.open(io.BytesIO(contents))
                 
-                # Convert RGBA to RGB for JPEG
+                # Convert RGBA to RGB for JPEG/WebP
                 if img.mode == 'RGBA':
                     img = img.convert('RGB')
                 
-                # Smaller size = faster upload (800x800 is enough for reports)
-                img.thumbnail((800, 800))
+                # Smaller size = faster upload (600x600 is enough for reports)
+                img.thumbnail((600, 600))
                 
                 # Save compressed image to bytes with lower quality
                 output = io.BytesIO()
-                # Lower quality = smaller file = faster upload
-                img.save(output, format='JPEG', quality=70, optimize=True)
+                # Try WebP first (smaller), fallback to JPEG
+                try:
+                    img.save(output, format='WEBP', quality=60, method=6)
+                    print(f"Compressed image to {len(output.getvalue())} bytes (WebP)")
+                except:
+                    # Fallback to JPEG if WebP not supported
+                    img.save(output, format='JPEG', quality=60, optimize=True)
+                    print(f"Compressed image to {len(output.getvalue())} bytes (JPEG)")
                 contents = output.getvalue()
-                print(f"Compressed image to {len(contents)} bytes")
             
             # Use Cloudinary if configured, otherwise save locally
             if settings.USE_CLOUDINARY:

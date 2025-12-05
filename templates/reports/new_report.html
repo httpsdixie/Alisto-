@@ -219,8 +219,8 @@ async function compressImage(file) {
                 let width = img.width;
                 let height = img.height;
                 
-                // Resize to max 800x800
-                const maxSize = 800;
+                // More aggressive resize: 600x600 for faster upload
+                const maxSize = 600;
                 if (width > height && width > maxSize) {
                     height = (height * maxSize) / width;
                     width = maxSize;
@@ -235,15 +235,30 @@ async function compressImage(file) {
                 const ctx = canvas.getContext('2d');
                 ctx.drawImage(img, 0, 0, width, height);
                 
-                // Convert to blob with compression
-                canvas.toBlob((blob) => {
-                    const compressedFile = new File([blob], file.name, {
-                        type: 'image/jpeg',
-                        lastModified: Date.now()
-                    });
-                    console.log(`Compressed: ${(file.size / 1024).toFixed(0)}KB → ${(compressedFile.size / 1024).toFixed(0)}KB`);
-                    resolve(compressedFile);
-                }, 'image/jpeg', 0.7); // 70% quality
+                // Try WebP first (smaller files), fallback to JPEG
+                const supportsWebP = canvas.toDataURL('image/webp').indexOf('data:image/webp') === 0;
+                
+                if (supportsWebP) {
+                    // WebP: 30% smaller than JPEG
+                    canvas.toBlob((blob) => {
+                        const compressedFile = new File([blob], file.name.replace(/\.[^/.]+$/, '.webp'), {
+                            type: 'image/webp',
+                            lastModified: Date.now()
+                        });
+                        console.log(`Compressed (WebP): ${(file.size / 1024).toFixed(0)}KB → ${(compressedFile.size / 1024).toFixed(0)}KB`);
+                        resolve(compressedFile);
+                    }, 'image/webp', 0.6); // 60% quality WebP
+                } else {
+                    // Fallback to JPEG with lower quality
+                    canvas.toBlob((blob) => {
+                        const compressedFile = new File([blob], file.name, {
+                            type: 'image/jpeg',
+                            lastModified: Date.now()
+                        });
+                        console.log(`Compressed (JPEG): ${(file.size / 1024).toFixed(0)}KB → ${(compressedFile.size / 1024).toFixed(0)}KB`);
+                        resolve(compressedFile);
+                    }, 'image/jpeg', 0.6); // 60% quality JPEG
+                }
             };
             img.src = e.target.result;
         };
