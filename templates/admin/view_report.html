@@ -143,7 +143,6 @@
                                 {% if report.status == 'Pending' %}
                                     <option value="Pending" selected>Pending</option>
                                     <option value="In Progress">In Progress</option>
-                                    <option value="Resolved">Resolved</option>
                                 {% elif report.status == 'In Progress' %}
                                     <option value="In Progress" selected>In Progress</option>
                                     <option value="Resolved">Resolved</option>
@@ -152,7 +151,7 @@
                                 {% endif %}
                             </select>
                             {% if report.status != 'Resolved' %}
-                            <small class="text-muted">Status flow: Pending → In Progress → Resolved (cannot go backwards)</small>
+                            <small class="text-muted">Status flow: Pending → In Progress → Resolved (cannot skip steps)</small>
                             {% endif %}
                         </div>
                         <div class="col-md-6 mb-3">

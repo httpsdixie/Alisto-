@@ -1061,6 +1061,17 @@ async def admin_update_report(
     
     old_status = report.status
     
+    # Validate status flow: Pending → In Progress → Resolved (cannot skip)
+    if status != old_status:
+        if old_status == 'Pending' and status == 'Resolved':
+            response = RedirectResponse(url=f"/admin/report/{report_id}", status_code=302)
+            response.set_cookie("flash_message", "danger:Cannot skip from Pending to Resolved. Must go through In Progress first.", max_age=5)
+            return response
+        if old_status == 'Resolved':
+            response = RedirectResponse(url=f"/admin/report/{report_id}", status_code=302)
+            response.set_cookie("flash_message", "danger:Cannot change status of a resolved report.", max_age=5)
+            return response
+    
     if status != old_status:
         status_history = StatusHistory(
             report_id=report.id,
