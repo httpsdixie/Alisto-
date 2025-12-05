@@ -641,11 +641,11 @@ async def new_report(
                 db.delete(oldest)
                 db.commit()
         
-        try:
-            # Send confirmation email to user
-            send_report_confirmation(current_user, report)
-        except Exception as email_error:
-            print(f"Email sending failed: {str(email_error)}")
+        # Email sending disabled for performance - can be slow on free tier
+        # try:
+        #     send_report_confirmation(current_user, report)
+        # except Exception as email_error:
+        #     print(f"Email sending failed: {str(email_error)}")
     except Exception as e:
         print(f"Error creating status history/notification: {str(e)}")
         db.rollback()
