@@ -28,9 +28,15 @@ class User(Base):
     feedbacks = relationship('Feedback', backref='user', lazy='dynamic')
     
     def set_password(self, password):
+        # Bcrypt has a 72-byte limit, truncate if necessary
+        if isinstance(password, str):
+            password = password.encode('utf-8')[:72].decode('utf-8', errors='ignore')
         self.password_hash = pwd_context.hash(password)
     
     def check_password(self, password):
+        # Truncate password to match what was stored
+        if isinstance(password, str):
+            password = password.encode('utf-8')[:72].decode('utf-8', errors='ignore')
         return pwd_context.verify(password, self.password_hash)
     
     def generate_reset_token(self, secret_key):
