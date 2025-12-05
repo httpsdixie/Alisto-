@@ -63,7 +63,11 @@
                 {% if report.photo_path %}
                 <div class="mb-4">
                     <h6 class="text-muted mb-2">Photo Evidence</h6>
-                    <img src="/static/uploads/{{ report.photo_path }}" class="img-fluid rounded" alt="Report photo" style="max-height: 400px;">
+                    {% if report.photo_path.startswith('http://') or report.photo_path.startswith('https://') %}
+                        <img src="{{ report.photo_path }}" class="img-fluid rounded" alt="Report photo" style="max-height: 400px;">
+                    {% else %}
+                        <img src="/static/uploads/{{ report.photo_path }}" class="img-fluid rounded" alt="Report photo" style="max-height: 400px;">
+                    {% endif %}
                 </div>
                 {% endif %}
                 
@@ -107,11 +111,21 @@
                 <div class="mt-3">
                     <h6 class="text-muted mb-2"><i class="bi bi-file-earmark-image me-1"></i>Resolution Evidence</h6>
                     {% if report.proof_path.lower().endswith('.pdf') %}
-                        <a href="/static/uploads/{{ report.proof_path }}" target="_blank" class="btn btn-outline-primary btn-sm">
-                            <i class="bi bi-file-pdf me-1"></i>View PDF Proof
-                        </a>
+                        {% if report.proof_path.startswith('http://') or report.proof_path.startswith('https://') %}
+                            <a href="{{ report.proof_path }}" target="_blank" class="btn btn-outline-primary btn-sm">
+                                <i class="bi bi-file-pdf me-1"></i>View PDF Proof
+                            </a>
+                        {% else %}
+                            <a href="/static/uploads/{{ report.proof_path }}" target="_blank" class="btn btn-outline-primary btn-sm">
+                                <i class="bi bi-file-pdf me-1"></i>View PDF Proof
+                            </a>
+                        {% endif %}
                     {% else %}
-                        <img src="/static/uploads/{{ report.proof_path }}" class="img-fluid rounded" alt="Resolution proof" style="max-height: 300px;">
+                        {% if report.proof_path.startswith('http://') or report.proof_path.startswith('https://') %}
+                            <img src="{{ report.proof_path }}" class="img-fluid rounded" alt="Resolution proof" style="max-height: 300px;">
+                        {% else %}
+                            <img src="/static/uploads/{{ report.proof_path }}" class="img-fluid rounded" alt="Resolution proof" style="max-height: 300px;">
+                        {% endif %}
                     {% endif %}
                 </div>
                 {% endif %}

@@ -92,20 +92,38 @@ def allowed_file(filename: str) -> bool:
 async def save_photo(file: UploadFile) -> Optional[str]:
     try:
         if file and file.filename and allowed_file(file.filename):
-            filename = sanitize_filename_custom(file.filename)
-            unique_filename = f"{uuid.uuid4().hex}_{filename}"
-            filepath = os.path.join(settings.UPLOAD_FOLDER, unique_filename)
-            
+            # Check file size first
             contents = await file.read()
             if len(contents) > 5 * 1024 * 1024:
                 return None
             
-            import io
-            img = Image.open(io.BytesIO(contents))
-            img.thumbnail((1200, 1200))
-            img.save(filepath, quality=85, optimize=True)
+            # Reset file pointer for re-reading
+            await file.seek(0)
             
-            return unique_filename
+            # Use Cloudinary if configured, otherwise save locally
+            if settings.USE_CLOUDINARY:
+                from cloudinary_storage import save_to_cloudinary
+                url = await save_to_cloudinary(file)
+                return url
+            else:
+                # Local storage fallback
+                filename = sanitize_filename_custom(file.filename)
+                unique_filename = f"{uuid.uuid4().hex}_{filename}"
+                filepath = os.path.join(settings.UPLOAD_FOLDER, unique_filename)
+                
+                # Check if it's a PDF file
+                if filename.lower().endswith('.pdf'):
+                    # Save PDF directly without processing
+                    with open(filepath, 'wb') as f:
+                        f.write(contents)
+                else:
+                    # Process image files
+                    import io
+                    img = Image.open(io.BytesIO(contents))
+                    img.thumbnail((1200, 1200))
+                    img.save(filepath, quality=85, optimize=True)
+                
+                return unique_filename
     except Exception as e:
         print(f"Error saving photo: {str(e)}")
         return None
@@ -134,6 +152,31 @@ def add_flash_message(response, message: str, category: str = "info"):
 @app.get("/favicon.ico")
 async def favicon():
     return FileResponse("static/favicon.svg", media_type="image/svg+xml")
+
+@app.get("/debug/report/{report_id}")
+async def debug_report(
+    report_id: int,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    """Debug endpoint to check report proof_path"""
+    report = db.query(Report).filter_by(id=report_id).first()
+    if not report:
+        return {"error": "Report not found"}
+    
+    proof_exists = False
+    if report.proof_path:
+        proof_file = os.path.join(settings.UPLOAD_FOLDER, report.proof_path)
+        proof_exists = os.path.exists(proof_file)
+    
+    return {
+        "report_id": report.id,
+        "ticket_id": report.ticket_id,
+        "proof_path": report.proof_path,
+        "proof_exists": proof_exists,
+        "expected_url": f"/static/uploads/{report.proof_path}" if report.proof_path else None,
+        "upload_folder": settings.UPLOAD_FOLDER
+    }
 
 @app.get("/", response_class=HTMLResponse)
 async def index(

@@ -17,3 +17,9 @@ services:
         value: 2024-00001,2024-00002
       - key: DEBUG
         value: False
+      - key: CLOUDINARY_CLOUD_NAME
+        sync: false
+      - key: CLOUDINARY_API_KEY
+        sync: false
+      - key: CLOUDINARY_API_SECRET
+        sync: false

@@ -56,9 +56,6 @@ dmypy.json
 
 .pyre/
 
-static/uploads/*
-!static/uploads/.gitkeep
-
 *.db
 *.sqlite
 *.sqlite3
