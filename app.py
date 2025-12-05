@@ -27,7 +27,7 @@ from auth import (
     create_access_token, check_rate_limit, record_failed_login, reset_login_attempts
 )
 from email_service import (
-    init_resend, send_report_confirmation, send_status_update, 
+    init_resend, send_status_update, 
     send_feedback_request, send_password_reset, send_admin_new_report_notification
 )
 
@@ -696,11 +696,7 @@ async def new_report(
                 db.delete(oldest)
                 db.commit()
         
-        try:
-            # Send confirmation email to user
-            send_report_confirmation(current_user, report)
-        except Exception as email_error:
-            print(f"Email sending failed: {str(email_error)}")
+        # Confirmation email removed - users can see report in dashboard
     except Exception as e:
         print(f"Error creating status history/notification: {str(e)}")
         db.rollback()
