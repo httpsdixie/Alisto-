@@ -319,6 +319,11 @@ async def register(
         response.set_cookie("flash_message", "danger:ID must be in format YYYY-NNNNN (e.g., 2024-12345)", max_age=5)
         return response
     
+    if len(password) > 72:
+        response = RedirectResponse(url="/register", status_code=302)
+        response.set_cookie("flash_message", "danger:Password must be 72 characters or less.", max_age=5)
+        return response
+    
     if password != confirm_password:
         response = RedirectResponse(url="/register", status_code=302)
         response.set_cookie("flash_message", "danger:Passwords must match.", max_age=5)
