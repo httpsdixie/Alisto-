@@ -9,8 +9,9 @@
         <div class="spinner-border" role="status" style="width: 4rem; height: 4rem;">
             <span class="visually-hidden">Loading...</span>
         </div>
-        <h4 class="mt-3">Uploading your report...</h4>
-        <p>Please wait, this may take a moment.</p>
+        <h4 class="mt-3" id="loadingTitle">Uploading your report...</h4>
+        <p id="loadingMessage">Please wait, this may take a moment.</p>
+        <small class="text-white-50" id="loadingTime"></small>
     </div>
 </div>
 
@@ -167,8 +168,30 @@ document.addEventListener('DOMContentLoaded', function() {
     // Handle confirm button click
     document.getElementById('confirmSubmitBtn').addEventListener('click', function() {
         confirmModal.hide();
-        // Show loading overlay
-        document.getElementById('loadingOverlay').style.display = 'flex';
+        
+        // Check if there's a photo attached
+        const photoCamera = document.getElementById('photoCamera');
+        const photoUpload = document.getElementById('photoUpload');
+        const hasPhoto = (photoCamera.files && photoCamera.files.length > 0) || 
+                        (photoUpload.files && photoUpload.files.length > 0);
+        
+        // Show loading overlay with appropriate message
+        const loadingOverlay = document.getElementById('loadingOverlay');
+        const loadingTitle = document.getElementById('loadingTitle');
+        const loadingMessage = document.getElementById('loadingMessage');
+        const loadingTime = document.getElementById('loadingTime');
+        
+        if (hasPhoto) {
+            loadingTitle.textContent = 'Uploading your report with photo...';
+            loadingMessage.textContent = 'Compressing and uploading image to cloud storage.';
+            loadingTime.textContent = 'This may take 5-15 seconds depending on image size and internet speed.';
+        } else {
+            loadingTitle.textContent = 'Submitting your report...';
+            loadingMessage.textContent = 'Saving report to database.';
+            loadingTime.textContent = 'This should only take a moment (~1 second).';
+        }
+        
+        loadingOverlay.style.display = 'flex';
         reportForm.submit();
     });
     
