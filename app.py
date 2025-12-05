@@ -5,7 +5,7 @@ import re
 from datetime import datetime, timedelta
 from typing import Optional
 
-from fastapi import FastAPI, Request, Depends, HTTPException, status, Form, UploadFile, File, Query, BackgroundTasks
+from fastapi import FastAPI, Request, Depends, HTTPException, status, Form, UploadFile, File, Query
 from fastapi.responses import HTMLResponse, RedirectResponse, JSONResponse, FileResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
@@ -88,79 +88,6 @@ def sanitize_filename_custom(filename: str) -> str:
 
 def allowed_file(filename: str) -> bool:
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in settings.ALLOWED_EXTENSIONS
-
-def upload_to_cloudinary_background(file_contents: bytes, filename: str, report_id: int):
-    """Background task to upload image to Cloudinary and update report"""
-    try:
-        from cloudinary_storage import save_to_cloudinary
-        from database import SessionLocal
-        
-        # Create a mock UploadFile object
-        class MockFile:
-            def __init__(self, filename):
-                self.filename = filename
-        
-        mock_file = MockFile(filename)
-        
-        # Upload to Cloudinary (synchronous in background)
-        import cloudinary
-        import cloudinary.uploader
-        from config import settings
-        
-        if settings.USE_CLOUDINARY:
-            cloudinary.config(
-                cloud_name=settings.CLOUDINARY_CLOUD_NAME,
-                api_key=settings.CLOUDINARY_API_KEY,
-                api_secret=settings.CLOUDINARY_API_SECRET,
-                secure=True
-            )
-            
-            result = cloudinary.uploader.upload(
-                file_contents,
-                folder="alisto_uploads",
-                resource_type="image",
-                format="jpg",
-                quality="auto:good"
-            )
-            
-            url = result.get('secure_url')
-            
-            # Update report with photo URL
-            db = SessionLocal()
-            try:
-                report = db.query(Report).filter_by(id=report_id).first()
-                if report:
-                    report.photo_path = url
-                    db.commit()
-                    print(f"Background upload complete: {url}")
-            finally:
-                db.close()
-    except Exception as e:
-        print(f"Background upload failed: {str(e)}")
-
-def send_emails_background(user_email: str, user_name: str, report_ticket_id: str, report_title: str):
-    """Background task to send confirmation email"""
-    try:
-        from email_service import send_email
-        
-        subject = f"Report Submitted - {report_ticket_id}"
-        html_content = f"""
-        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-            <h2 style="color: #FFC107;">Report Submitted Successfully!</h2>
-            <p>Dear {user_name},</p>
-            <p>Your safety report has been submitted and is now being reviewed by our maintenance team.</p>
-            <div style="background-color: #f8f9fa; padding: 15px; border-radius: 5px; margin: 20px 0;">
-                <p><strong>Ticket ID:</strong> {report_ticket_id}</p>
-                <p><strong>Title:</strong> {report_title}</p>
-            </div>
-            <p>You will receive updates via email as your report is processed.</p>
-            <p>Thank you for helping keep our campus safe!</p>
-        </div>
-        """
-        send_email(user_email, subject, html_content)
-        print(f"Background email sent to {user_email}")
-    except Exception as e:
-        print(f"Background email failed: {str(e)}")
 
 async def save_photo(file: UploadFile) -> Optional[str]:
     try:
@@ -686,7 +613,6 @@ async def new_report_page(
 @app.post("/report/new")
 async def new_report(
     request: Request,
-    background_tasks: BackgroundTasks,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
     title: str = Form(...),
@@ -722,7 +648,12 @@ async def new_report(
         response.set_cookie("flash_message", "warning:You already submitted a similar report recently.", max_age=5)
         return response
     
-    # Create report first (fast)
+    # Upload photo first (synchronous)
+    photo_filename = None
+    if photo and photo.filename:
+        photo_filename = await save_photo(photo)
+    
+    # Create report with photo
     try:
         report = Report(
             title=sanitize_input(title),
@@ -730,7 +661,7 @@ async def new_report(
             description=sanitize_input(description),
             category=category,
             priority=priority,
-            photo_path=None,  # Will be updated in background
+            photo_path=photo_filename,
             user_id=current_user.id
         )
         
@@ -744,7 +675,7 @@ async def new_report(
         response.set_cookie("flash_message", f"danger:Error submitting report: {str(e)}", max_age=5)
         return response
     
-    # Optimize: Single commit for all database operations
+    # Add status history and notification
     try:
         status_history = StatusHistory(
             report_id=report.id,
@@ -776,29 +707,16 @@ async def new_report(
         # Single commit for all operations
         db.commit()
         
+        # Send confirmation email (synchronous)
+        try:
+            from email_service import send_report_confirmation
+            send_report_confirmation(current_user, report)
+        except Exception as email_error:
+            print(f"Email sending failed: {str(email_error)}")
+            
     except Exception as e:
         print(f"Error creating status history/notification: {str(e)}")
         db.rollback()
-    
-    # Background tasks (non-blocking)
-    if photo and photo.filename:
-        photo_contents = await photo.read()
-        if len(photo_contents) > 0:
-            background_tasks.add_task(
-                upload_to_cloudinary_background,
-                photo_contents,
-                photo.filename,
-                report.id
-            )
-    
-    # Send email in background
-    background_tasks.add_task(
-        send_emails_background,
-        current_user.email,
-        current_user.full_name,
-        report.ticket_id,
-        report.title
-    )
     
     response = RedirectResponse(url="/my-reports", status_code=302)
     response.set_cookie("flash_message", f"success:Report submitted successfully! Your Ticket ID: {report.ticket_id}", max_age=5)
