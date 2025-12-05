@@ -5,7 +5,7 @@ import re
 from datetime import datetime, timedelta
 from typing import Optional
 
-from fastapi import FastAPI, Request, Depends, HTTPException, status, Form, UploadFile, File, Query
+from fastapi import FastAPI, Request, Depends, HTTPException, status, Form, UploadFile, File, Query, BackgroundTasks
 from fastapi.responses import HTMLResponse, RedirectResponse, JSONResponse, FileResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
@@ -88,6 +88,30 @@ def sanitize_filename_custom(filename: str) -> str:
 
 def allowed_file(filename: str) -> bool:
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in settings.ALLOWED_EXTENSIONS
+
+def send_email_background(user_email: str, user_name: str, ticket_id: str, title: str):
+    """Send confirmation email in background"""
+    try:
+        from email_service import send_email
+        
+        subject = f"Report Submitted - {ticket_id}"
+        html_content = f"""
+        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+            <h2 style="color: #FFC107;">Report Submitted Successfully!</h2>
+            <p>Dear {user_name},</p>
+            <p>Your safety report has been submitted and is now being reviewed by our maintenance team.</p>
+            <div style="background-color: #f8f9fa; padding: 15px; border-radius: 5px; margin: 20px 0;">
+                <p><strong>Ticket ID:</strong> {ticket_id}</p>
+                <p><strong>Title:</strong> {title}</p>
+            </div>
+            <p>You will receive updates via email as your report is processed.</p>
+            <p>Thank you for helping keep our campus safe!</p>
+        </div>
+        """
+        send_email(user_email, subject, html_content)
+        print(f"✅ Email sent to {user_email}")
+    except Exception as e:
+        print(f"❌ Email failed: {str(e)}")
 
 async def save_photo(file: UploadFile) -> Optional[str]:
     try:
@@ -613,6 +637,7 @@ async def new_report_page(
 @app.post("/report/new")
 async def new_report(
     request: Request,
+    background_tasks: BackgroundTasks,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
     title: str = Form(...),
@@ -707,12 +732,8 @@ async def new_report(
         # Single commit for all operations
         db.commit()
         
-        # Send confirmation email (synchronous)
-        try:
-            from email_service import send_report_confirmation
-            send_report_confirmation(current_user, report)
-        except Exception as email_error:
-            print(f"Email sending failed: {str(email_error)}")
+        # Send confirmation email in background (non-blocking)
+        background_tasks.add_task(send_email_background, current_user.email, current_user.full_name, report.ticket_id, report.title)
             
     except Exception as e:
         print(f"Error creating status history/notification: {str(e)}")
