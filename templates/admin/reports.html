@@ -1,0 +1,131 @@
+{% extends "base.html" %}
+
+{% block title %}All Reports - Admin - Alisto!{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2><i class="bi bi-file-earmark-text me-2"></i>All Reports</h2>
+    <span class="badge bg-primary fs-6">Total: {{ total }}</span>
+</div>
+
+<div class="card mb-4">
+    <div class="card-body">
+        <form method="GET" action="/admin/reports" class="row g-3">
+            <div class="col-md-3">
+                <input type="text" class="form-control" name="keyword" placeholder="Search..." value="{{ keyword }}">
+            </div>
+            <div class="col-md-2">
+                <select class="form-select" name="category">
+                    <option value="">All Categories</option>
+                    <option value="Infrastructure" {% if category == 'Infrastructure' %}selected{% endif %}>Infrastructure</option>
+                    <option value="Safety Hazard" {% if category == 'Safety Hazard' %}selected{% endif %}>Safety Hazard</option>
+                    <option value="Electrical" {% if category == 'Electrical' %}selected{% endif %}>Electrical</option>
+                    <option value="Plumbing" {% if category == 'Plumbing' %}selected{% endif %}>Plumbing</option>
+                    <option value="Sanitation" {% if category == 'Sanitation' %}selected{% endif %}>Sanitation</option>
+                    <option value="Security" {% if category == 'Security' %}selected{% endif %}>Security</option>
+                    <option value="Other" {% if category == 'Other' %}selected{% endif %}>Other</option>
+                </select>
+            </div>
+            <div class="col-md-2">
+                <select class="form-select" name="priority">
+                    <option value="">All Priorities</option>
+                    <option value="High" {% if priority == 'High' %}selected{% endif %}>High</option>
+                    <option value="Medium" {% if priority == 'Medium' %}selected{% endif %}>Medium</option>
+                    <option value="Low" {% if priority == 'Low' %}selected{% endif %}>Low</option>
+                </select>
+            </div>
+            <div class="col-md-2">
+                <select class="form-select" name="status">
+                    <option value="">All Statuses</option>
+                    <option value="Pending" {% if status == 'Pending' %}selected{% endif %}>Pending</option>
+                    <option value="In Progress" {% if status == 'In Progress' %}selected{% endif %}>In Progress</option>
+                    <option value="Resolved" {% if status == 'Resolved' %}selected{% endif %}>Resolved</option>
+                </select>
+            </div>
+            <div class="col-md-2">
+                <select class="form-select" name="sort_by">
+                    <option value="newest" {% if sort_by == 'newest' %}selected{% endif %}>Most Recent</option>
+                    <option value="oldest" {% if sort_by == 'oldest' %}selected{% endif %}>Oldest First</option>
+                    <option value="priority_high" {% if sort_by == 'priority_high' %}selected{% endif %}>Priority (High-Low)</option>
+                    <option value="priority_low" {% if sort_by == 'priority_low' %}selected{% endif %}>Priority (Low-High)</option>
+                </select>
+            </div>
+            <div class="col-md-1">
+                <button type="submit" class="btn btn-primary w-100">
+                    <i class="bi bi-search"></i>
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-body">
+        {% if reports %}
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th>Ticket ID</th>
+                            <th>Title</th>
+                            <th>Category</th>
+                            <th>Priority</th>
+                            <th>Status</th>
+                            <th>Submitted</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for report in reports %}
+                        <tr>
+                            <td><code>{{ report.ticket_id }}</code></td>
+                            <td>{{ report.title[:40] }}{% if report.title|length > 40 %}...{% endif %}</td>
+                            <td><span class="badge bg-secondary">{{ report.category }}</span></td>
+                            <td>
+                                <span class="badge {% if report.priority == 'High' %}bg-danger{% elif report.priority == 'Medium' %}bg-warning text-dark{% else %}bg-success{% endif %}">
+                                    {{ report.priority }}
+                                </span>
+                            </td>
+                            <td>
+                                <span class="badge {% if report.status == 'Resolved' %}bg-success{% elif report.status == 'In Progress' %}bg-info{% else %}bg-warning text-dark{% endif %}">
+                                    {{ report.status }}
+                                </span>
+                            </td>
+                            <td>{{ report.created_at.strftime('%b %d, %Y') }}</td>
+                            <td>
+                                <a href="/admin/report/{{ report.id }}" class="btn btn-sm btn-outline-primary">
+                                    <i class="bi bi-eye"></i> View
+                                </a>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            
+            {% if total_pages > 1 %}
+            <nav aria-label="Page navigation" class="mt-4">
+                <ul class="pagination justify-content-center">
+                    <li class="page-item {% if page == 1 %}disabled{% endif %}">
+                        <a class="page-link" href="?page={{ page - 1 }}&keyword={{ keyword }}&category={{ category }}&priority={{ priority }}&status={{ status }}&sort_by={{ sort_by }}">Previous</a>
+                    </li>
+                    {% for p in range(1, total_pages + 1) %}
+                        <li class="page-item {% if p == page %}active{% endif %}">
+                            <a class="page-link" href="?page={{ p }}&keyword={{ keyword }}&category={{ category }}&priority={{ priority }}&status={{ status }}&sort_by={{ sort_by }}">{{ p }}</a>
+                        </li>
+                    {% endfor %}
+                    <li class="page-item {% if page == total_pages %}disabled{% endif %}">
+                        <a class="page-link" href="?page={{ page + 1 }}&keyword={{ keyword }}&category={{ category }}&priority={{ priority }}&status={{ status }}&sort_by={{ sort_by }}">Next</a>
+                    </li>
+                </ul>
+            </nav>
+            {% endif %}
+        {% else %}
+            <div class="text-center py-5">
+                <i class="bi bi-file-earmark-x display-1 text-muted mb-3"></i>
+                <h5 class="text-muted">No reports found</h5>
+            </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,215 @@
+{% extends "base.html" %}
+
+{% block title %}New Report - Alisto!{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <div class="card shadow-sm">
+            <div class="card-header bg-primary text-white">
+                <h4 class="mb-0"><i class="bi bi-plus-circle me-2"></i>Submit New Report</h4>
+            </div>
+            <div class="card-body p-4">
+                <form method="POST" action="/report/new" enctype="multipart/form-data">
+                    <div class="mb-3">
+                        <label for="title" class="form-label">Report Title</label>
+                        <input type="text" class="form-control" id="title" name="title" required minlength="5" maxlength="200" placeholder="Brief description of the issue">
+                    </div>
+                    <div class="mb-3">
+                        <label for="location" class="form-label">Location</label>
+                        <div class="input-group">
+                            <input type="text" class="form-control" id="location" name="location" required placeholder="e.g., Building A, Room 101">
+                            <button type="button" class="btn btn-outline-secondary" id="scanQrBtn" title="Scan QR Code">
+                                <i class="bi bi-qr-code-scan"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label for="description" class="form-label">Description</label>
+                        <textarea class="form-control" id="description" name="description" rows="4" required minlength="10" placeholder="Detailed description of the issue..."></textarea>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="category" class="form-label">Category</label>
+                            <select class="form-select" id="category" name="category" required>
+                                <option value="Infrastructure">Infrastructure</option>
+                                <option value="Safety Hazard">Safety Hazard</option>
+                                <option value="Electrical">Electrical</option>
+                                <option value="Plumbing">Plumbing</option>
+                                <option value="Sanitation">Sanitation</option>
+                                <option value="Security">Security</option>
+                                <option value="Other">Other</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="priority" class="form-label">Priority Level</label>
+                            <select class="form-select" id="priority" name="priority" required>
+                                <option value="Low">Low</option>
+                                <option value="Medium" selected>Medium</option>
+                                <option value="High">High</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label for="photo" class="form-label">Photo Evidence (Optional)</label>
+                        <input type="file" class="form-control" id="photo" name="photo" accept="image/*">
+                        <small class="form-text text-muted">Max 5MB. Formats: JPG, PNG, GIF</small>
+                    </div>
+                    <div class="mb-3">
+                        <button type="button" class="btn btn-outline-secondary" id="cameraBtn">
+                            <i class="bi bi-camera me-2"></i>Take Photo
+                        </button>
+                    </div>
+                    <div id="cameraPreview" class="mb-3 d-none">
+                        <video id="video" class="w-100 rounded" autoplay></video>
+                        <div class="mt-2">
+                            <button type="button" class="btn btn-success" id="captureBtn">
+                                <i class="bi bi-camera me-2"></i>Capture
+                            </button>
+                            <button type="button" class="btn btn-secondary" id="closeCameraBtn">
+                                <i class="bi bi-x me-2"></i>Close
+                            </button>
+                        </div>
+                        <canvas id="canvas" class="d-none"></canvas>
+                    </div>
+                    <div id="photoPreview" class="mb-3 d-none">
+                        <img id="previewImg" class="img-fluid rounded" style="max-height: 200px;">
+                    </div>
+                    <hr>
+                    <div class="d-flex justify-content-between">
+                        <a href="/dashboard" class="btn btn-outline-secondary">
+                            <i class="bi bi-arrow-left me-2"></i>Cancel
+                        </a>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="bi bi-send me-2"></i>Submit Report
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="qrModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title"><i class="bi bi-qr-code-scan me-2"></i>Scan QR Code</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <video id="qrVideo" class="w-100 rounded"></video>
+                <canvas id="qrCanvas" class="d-none"></canvas>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.min.js"></script>
+<script>
+    const cameraBtn = document.getElementById('cameraBtn');
+    const cameraPreview = document.getElementById('cameraPreview');
+    const video = document.getElementById('video');
+    const canvas = document.getElementById('canvas');
+    const captureBtn = document.getElementById('captureBtn');
+    const closeCameraBtn = document.getElementById('closeCameraBtn');
+    const photoInput = document.getElementById('photo');
+    const photoPreview = document.getElementById('photoPreview');
+    const previewImg = document.getElementById('previewImg');
+    let stream = null;
+
+    cameraBtn.addEventListener('click', async () => {
+        try {
+            stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } });
+            video.srcObject = stream;
+            cameraPreview.classList.remove('d-none');
+            cameraBtn.classList.add('d-none');
+        } catch (err) {
+            alert('Camera access denied or not available.');
+        }
+    });
+
+    captureBtn.addEventListener('click', () => {
+        canvas.width = video.videoWidth;
+        canvas.height = video.videoHeight;
+        canvas.getContext('2d').drawImage(video, 0, 0);
+        canvas.toBlob(blob => {
+            const file = new File([blob], 'camera-photo.jpg', { type: 'image/jpeg' });
+            const dataTransfer = new DataTransfer();
+            dataTransfer.items.add(file);
+            photoInput.files = dataTransfer.files;
+            previewImg.src = canvas.toDataURL('image/jpeg');
+            photoPreview.classList.remove('d-none');
+        }, 'image/jpeg', 0.85);
+        closeCamera();
+    });
+
+    closeCameraBtn.addEventListener('click', closeCamera);
+
+    function closeCamera() {
+        if (stream) {
+            stream.getTracks().forEach(track => track.stop());
+            stream = null;
+        }
+        cameraPreview.classList.add('d-none');
+        cameraBtn.classList.remove('d-none');
+    }
+
+    photoInput.addEventListener('change', (e) => {
+        if (e.target.files[0]) {
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                previewImg.src = e.target.result;
+                photoPreview.classList.remove('d-none');
+            };
+            reader.readAsDataURL(e.target.files[0]);
+        }
+    });
+
+    const scanQrBtn = document.getElementById('scanQrBtn');
+    const qrModal = new bootstrap.Modal(document.getElementById('qrModal'));
+    const qrVideo = document.getElementById('qrVideo');
+    const qrCanvas = document.getElementById('qrCanvas');
+    let qrStream = null;
+
+    scanQrBtn.addEventListener('click', async () => {
+        try {
+            qrStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } });
+            qrVideo.srcObject = qrStream;
+            qrVideo.play();
+            qrModal.show();
+            scanQR();
+        } catch (err) {
+            alert('Camera access denied or not available.');
+        }
+    });
+
+    function scanQR() {
+        if (!qrStream) return;
+        qrCanvas.width = qrVideo.videoWidth;
+        qrCanvas.height = qrVideo.videoHeight;
+        const ctx = qrCanvas.getContext('2d');
+        ctx.drawImage(qrVideo, 0, 0, qrCanvas.width, qrCanvas.height);
+        const imageData = ctx.getImageData(0, 0, qrCanvas.width, qrCanvas.height);
+        const code = jsQR(imageData.data, imageData.width, imageData.height);
+        if (code) {
+            document.getElementById('location').value = code.data;
+            stopQR();
+            qrModal.hide();
+        } else {
+            requestAnimationFrame(scanQR);
+        }
+    }
+
+    document.getElementById('qrModal').addEventListener('hidden.bs.modal', stopQR);
+
+    function stopQR() {
+        if (qrStream) {
+            qrStream.getTracks().forEach(track => track.stop());
+            qrStream = null;
+        }
+    }
+</script>
+{% endblock %}

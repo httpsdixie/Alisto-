@@ -1,0 +1,101 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard - Alisto!{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2><i class="bi bi-speedometer2 me-2"></i>My Dashboard</h2>
+    <a href="/report/new" class="btn btn-primary">
+        <i class="bi bi-plus-circle me-2"></i>New Report
+    </a>
+</div>
+
+<div class="row g-4 mb-4">
+    <div class="col-md-4">
+        <div class="card border-warning h-100">
+            <div class="card-body text-center">
+                <i class="bi bi-clock display-4 text-warning mb-2"></i>
+                <h3 class="fw-bold">{{ pending_count }}</h3>
+                <p class="text-muted mb-0">Pending</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card border-info h-100">
+            <div class="card-body text-center">
+                <i class="bi bi-gear display-4 text-info mb-2"></i>
+                <h3 class="fw-bold">{{ in_progress_count }}</h3>
+                <p class="text-muted mb-0">In Progress</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card border-success h-100">
+            <div class="card-body text-center">
+                <i class="bi bi-check-circle display-4 text-success mb-2"></i>
+                <h3 class="fw-bold">{{ resolved_count }}</h3>
+                <p class="text-muted mb-0">Resolved</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-header bg-white d-flex justify-content-between align-items-center">
+        <h5 class="mb-0"><i class="bi bi-file-earmark-text me-2"></i>Recent Reports</h5>
+        <a href="/my-reports" class="btn btn-sm btn-outline-primary">View All</a>
+    </div>
+    <div class="card-body">
+        {% if reports %}
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th>Ticket ID</th>
+                            <th>Title</th>
+                            <th>Category</th>
+                            <th>Priority</th>
+                            <th>Status</th>
+                            <th>Date</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for report in reports %}
+                        <tr>
+                            <td><code>{{ report.ticket_id }}</code></td>
+                            <td>{{ report.title[:40] }}{% if report.title|length > 40 %}...{% endif %}</td>
+                            <td><span class="badge bg-secondary">{{ report.category }}</span></td>
+                            <td>
+                                <span class="badge {% if report.priority == 'High' %}bg-danger{% elif report.priority == 'Medium' %}bg-warning text-dark{% else %}bg-success{% endif %}">
+                                    {{ report.priority }}
+                                </span>
+                            </td>
+                            <td>
+                                <span class="badge {% if report.status == 'Resolved' %}bg-success{% elif report.status == 'In Progress' %}bg-info{% else %}bg-warning text-dark{% endif %}">
+                                    {{ report.status }}
+                                </span>
+                            </td>
+                            <td>{{ report.created_at.strftime('%b %d, %Y') }}</td>
+                            <td>
+                                <a href="/report/{{ report.id }}" class="btn btn-sm btn-outline-primary">
+                                    <i class="bi bi-eye"></i>
+                                </a>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        {% else %}
+            <div class="text-center py-4">
+                <i class="bi bi-file-earmark-x display-4 text-muted mb-3"></i>
+                <p class="text-muted">No reports yet. Submit your first report!</p>
+                <a href="/report/new" class="btn btn-primary">
+                    <i class="bi bi-plus-circle me-2"></i>Submit Report
+                </a>
+            </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,150 @@
+{% extends "base.html" %}
+
+{% block title %}Help & FAQ - Alisto!{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-lg-10">
+        <h2 class="mb-4"><i class="bi bi-question-circle me-2"></i>Help & Frequently Asked Questions</h2>
+
+        <div class="card mb-4">
+            <div class="card-header bg-primary text-white">
+                <h5 class="mb-0"><i class="bi bi-info-circle me-2"></i>About Alisto!</h5>
+            </div>
+            <div class="card-body">
+                <p>Alisto! is the official campus safety reporting system for Eastern Visayas State University - Ormoc Campus (EVSU-OC). It allows students and faculty to report safety concerns and maintenance issues in real-time, ensuring a safer campus environment for everyone.</p>
+            </div>
+        </div>
+
+        <div class="accordion" id="faqAccordion">
+            <div class="accordion-item">
+                <h2 class="accordion-header">
+                    <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#faq1">
+                        How do I submit a report?
+                    </button>
+                </h2>
+                <div id="faq1" class="accordion-collapse collapse show" data-bs-parent="#faqAccordion">
+                    <div class="accordion-body">
+                        <ol>
+                            <li>Log in to your account (or register if you don't have one)</li>
+                            <li>Click "New Report" in the navigation menu</li>
+                            <li>Fill out the report form with details about the issue</li>
+                            <li>Optionally add a photo as evidence</li>
+                            <li>Select the appropriate category and priority level</li>
+                            <li>Click "Submit Report"</li>
+                        </ol>
+                        <p>You'll receive a unique ticket ID to track your report's progress.</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="accordion-item">
+                <h2 class="accordion-header">
+                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#faq2">
+                        How do I track my report?
+                    </button>
+                </h2>
+                <div id="faq2" class="accordion-collapse collapse" data-bs-parent="#faqAccordion">
+                    <div class="accordion-body">
+                        <p>There are two ways to track your report:</p>
+                        <ul>
+                            <li><strong>If logged in:</strong> Go to "My Reports" to see all your submissions and their current status.</li>
+                            <li><strong>Using Ticket ID:</strong> Use the "Track Report" feature and enter your ticket ID (e.g., ALT-20251202-ABC123).</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <div class="accordion-item">
+                <h2 class="accordion-header">
+                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#faq3">
+                        What do the status types mean?
+                    </button>
+                </h2>
+                <div id="faq3" class="accordion-collapse collapse" data-bs-parent="#faqAccordion">
+                    <div class="accordion-body">
+                        <ul>
+                            <li><span class="badge bg-warning text-dark">Pending</span> - Your report has been received and is awaiting review.</li>
+                            <li><span class="badge bg-info">In Progress</span> - The maintenance team is actively working on the issue.</li>
+                            <li><span class="badge bg-success">Resolved</span> - The issue has been fixed. Please provide feedback!</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <div class="accordion-item">
+                <h2 class="accordion-header">
+                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#faq4">
+                        What are the report categories?
+                    </button>
+                </h2>
+                <div id="faq4" class="accordion-collapse collapse" data-bs-parent="#faqAccordion">
+                    <div class="accordion-body">
+                        <ul>
+                            <li><strong>Infrastructure</strong> - Building damage, broken facilities, structural issues</li>
+                            <li><strong>Safety Hazard</strong> - Dangerous conditions, obstacles, tripping hazards</li>
+                            <li><strong>Electrical</strong> - Broken lights, exposed wires, outlet issues</li>
+                            <li><strong>Plumbing</strong> - Leaks, clogged drains, water pressure problems</li>
+                            <li><strong>Sanitation</strong> - Cleanliness issues, waste disposal, pest control</li>
+                            <li><strong>Security</strong> - Broken locks, unauthorized access, safety concerns</li>
+                            <li><strong>Other</strong> - Any issue that doesn't fit the above categories</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <div class="accordion-item">
+                <h2 class="accordion-header">
+                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#faq5">
+                        How do I use the QR code scanner?
+                    </button>
+                </h2>
+                <div id="faq5" class="accordion-collapse collapse" data-bs-parent="#faqAccordion">
+                    <div class="accordion-body">
+                        <p>When submitting a new report, click the QR code icon next to the location field. This will open your device's camera. Point it at a location QR code posted around campus, and the location will be automatically filled in.</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="accordion-item">
+                <h2 class="accordion-header">
+                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#faq6">
+                        Why can't I submit more reports?
+                    </button>
+                </h2>
+                <div id="faq6" class="accordion-collapse collapse" data-bs-parent="#faqAccordion">
+                    <div class="accordion-body">
+                        <p>To prevent spam and ensure quality reports, there's a limit of 5 reports per user per 24 hours. Additionally, you cannot submit duplicate reports (same title and location) within 24 hours.</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="accordion-item">
+                <h2 class="accordion-header">
+                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#faq7">
+                        How do I reset my password?
+                    </button>
+                </h2>
+                <div id="faq7" class="accordion-collapse collapse" data-bs-parent="#faqAccordion">
+                    <div class="accordion-body">
+                        <ol>
+                            <li>Click "Forgot password?" on the login page</li>
+                            <li>Enter your registered email address</li>
+                            <li>Check your email for a password reset link</li>
+                            <li>Click the link and create a new password</li>
+                        </ol>
+                        <p>Note: The reset link expires after 1 hour for security reasons.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="card mt-4">
+            <div class="card-body text-center">
+                <h5>Still need help?</h5>
+                <p class="text-muted">Contact the EVSU-OC IT Support team or visit the General Services Office.</p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,157 @@
+{% extends "base.html" %}
+
+{% block title %}Alisto! - EVSU-OC Campus Safety Reporting System{% endblock %}
+
+{% block content %}
+<section class="hero-section text-center py-5">
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-lg-8">
+                <h1 class="display-4 fw-bold text-primary mb-3">
+                    <i class="bi bi-shield-check me-2"></i>Alisto!
+                </h1>
+                <p class="lead mb-4">EVSU-OC Campus Safety Reporting System</p>
+                <p class="text-muted mb-4">Report campus safety concerns and maintenance issues quickly and easily. Help make our campus a safer place for everyone.</p>
+                <div class="d-flex justify-content-center gap-3 flex-wrap">
+                    <a href="/register" class="btn btn-primary btn-lg px-4">
+                        <i class="bi bi-person-plus me-2"></i>Get Started
+                    </a>
+                    <a href="/track-report" class="btn btn-outline-primary btn-lg px-4">
+                        <i class="bi bi-search me-2"></i>Track Report
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="stats-section py-5 bg-light">
+    <div class="container">
+        <h2 class="text-center mb-4">Campus Safety at a Glance</h2>
+        <div class="row g-4">
+            <div class="col-md-3">
+                <div class="card h-100 text-center border-0 shadow-sm">
+                    <div class="card-body">
+                        <i class="bi bi-file-earmark-text display-4 text-primary mb-3"></i>
+                        <h3 class="h2 fw-bold" id="total-reports">0</h3>
+                        <p class="text-muted mb-0">Total Reports</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card h-100 text-center border-0 shadow-sm">
+                    <div class="card-body">
+                        <i class="bi bi-clock display-4 text-warning mb-3"></i>
+                        <h3 class="h2 fw-bold" id="pending-reports">0</h3>
+                        <p class="text-muted mb-0">Pending</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card h-100 text-center border-0 shadow-sm">
+                    <div class="card-body">
+                        <i class="bi bi-gear display-4 text-info mb-3"></i>
+                        <h3 class="h2 fw-bold" id="in-progress-reports">0</h3>
+                        <p class="text-muted mb-0">In Progress</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card h-100 text-center border-0 shadow-sm">
+                    <div class="card-body">
+                        <i class="bi bi-check-circle display-4 text-success mb-3"></i>
+                        <h3 class="h2 fw-bold" id="resolved-reports">0</h3>
+                        <p class="text-muted mb-0">Resolved</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="features-section py-5">
+    <div class="container">
+        <h2 class="text-center mb-5">How It Works</h2>
+        <div class="row g-4">
+            <div class="col-md-4">
+                <div class="card h-100 border-0 shadow-sm text-center">
+                    <div class="card-body">
+                        <div class="feature-icon bg-primary text-white rounded-circle d-inline-flex align-items-center justify-content-center mb-3" style="width: 64px; height: 64px;">
+                            <i class="bi bi-pencil-square fs-4"></i>
+                        </div>
+                        <h5 class="card-title">1. Submit Report</h5>
+                        <p class="card-text text-muted">Describe the issue, add photos, and specify the location. Use camera capture or QR code scanning for quick submissions.</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card h-100 border-0 shadow-sm text-center">
+                    <div class="card-body">
+                        <div class="feature-icon bg-warning text-white rounded-circle d-inline-flex align-items-center justify-content-center mb-3" style="width: 64px; height: 64px;">
+                            <i class="bi bi-search fs-4"></i>
+                        </div>
+                        <h5 class="card-title">2. Track Progress</h5>
+                        <p class="card-text text-muted">Get a unique ticket ID and track your report status in real-time. Receive email notifications on updates.</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card h-100 border-0 shadow-sm text-center">
+                    <div class="card-body">
+                        <div class="feature-icon bg-success text-white rounded-circle d-inline-flex align-items-center justify-content-center mb-3" style="width: 64px; height: 64px;">
+                            <i class="bi bi-check2-circle fs-4"></i>
+                        </div>
+                        <h5 class="card-title">3. Issue Resolved</h5>
+                        <p class="card-text text-muted">Maintenance team addresses the issue. Confirm resolution and provide feedback to help us improve.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="categories-section py-5 bg-light">
+    <div class="container">
+        <h2 class="text-center mb-4">Report Categories</h2>
+        <div class="row g-3 justify-content-center">
+            <div class="col-auto">
+                <span class="badge bg-primary p-2"><i class="bi bi-building me-1"></i>Infrastructure</span>
+            </div>
+            <div class="col-auto">
+                <span class="badge bg-danger p-2"><i class="bi bi-exclamation-triangle me-1"></i>Safety Hazard</span>
+            </div>
+            <div class="col-auto">
+                <span class="badge bg-warning text-dark p-2"><i class="bi bi-lightning me-1"></i>Electrical</span>
+            </div>
+            <div class="col-auto">
+                <span class="badge bg-info p-2"><i class="bi bi-droplet me-1"></i>Plumbing</span>
+            </div>
+            <div class="col-auto">
+                <span class="badge bg-success p-2"><i class="bi bi-trash me-1"></i>Sanitation</span>
+            </div>
+            <div class="col-auto">
+                <span class="badge bg-dark p-2"><i class="bi bi-shield me-1"></i>Security</span>
+            </div>
+            <div class="col-auto">
+                <span class="badge bg-secondary p-2"><i class="bi bi-three-dots me-1"></i>Other</span>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        fetch('/api/home-stats')
+            .then(response => response.json())
+            .then(data => {
+                document.getElementById('total-reports').textContent = data.total;
+                document.getElementById('pending-reports').textContent = data.pending;
+                document.getElementById('in-progress-reports').textContent = data.in_progress;
+                document.getElementById('resolved-reports').textContent = data.resolved;
+            })
+            .catch(error => console.error('Error loading stats:', error));
+    });
+</script>
+{% endblock %}

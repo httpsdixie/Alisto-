@@ -1,0 +1,91 @@
+{% extends "base.html" %}
+
+{% block title %}Track Report - Alisto!{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <div class="card shadow-sm">
+            <div class="card-header bg-primary text-white text-center py-3">
+                <h4 class="mb-0"><i class="bi bi-search me-2"></i>Track Your Report</h4>
+            </div>
+            <div class="card-body p-4">
+                <form method="POST" action="/track-report" class="mb-4">
+                    <div class="input-group">
+                        <input type="text" class="form-control form-control-lg" name="ticket_id" placeholder="Enter Ticket ID (e.g., ALT-20251202-ABC123)" required>
+                        <button type="submit" class="btn btn-primary btn-lg">
+                            <i class="bi bi-search me-2"></i>Track
+                        </button>
+                    </div>
+                </form>
+
+                {% if report %}
+                <div class="border rounded p-4">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <h5 class="mb-0">{{ report.title }}</h5>
+                        <span class="badge {% if report.status == 'Resolved' %}bg-success{% elif report.status == 'In Progress' %}bg-info{% else %}bg-warning text-dark{% endif %} fs-6">
+                            {{ report.status }}
+                        </span>
+                    </div>
+                    <hr>
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <strong>Ticket ID:</strong>
+                            <p class="mb-0"><code>{{ report.ticket_id }}</code></p>
+                        </div>
+                        <div class="col-md-6">
+                            <strong>Category:</strong>
+                            <p class="mb-0"><span class="badge bg-secondary">{{ report.category }}</span></p>
+                        </div>
+                    </div>
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <strong>Priority:</strong>
+                            <p class="mb-0">
+                                <span class="badge {% if report.priority == 'High' %}bg-danger{% elif report.priority == 'Medium' %}bg-warning text-dark{% else %}bg-success{% endif %}">
+                                    {{ report.priority }}
+                                </span>
+                            </p>
+                        </div>
+                        <div class="col-md-6">
+                            <strong>Location:</strong>
+                            <p class="mb-0">{{ report.location }}</p>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <strong>Submitted:</strong>
+                        <p class="mb-0">{{ report.created_at.strftime('%B %d, %Y at %I:%M %p') }}</p>
+                    </div>
+                    {% if report.admin_notes %}
+                    <div class="mb-3">
+                        <strong>Admin Notes:</strong>
+                        <div class="alert alert-info mb-0">{{ report.admin_notes }}</div>
+                    </div>
+                    {% endif %}
+
+                    {% if status_history %}
+                    <hr>
+                    <h6><i class="bi bi-clock-history me-2"></i>Status History</h6>
+                    <div class="timeline">
+                        {% for history in status_history %}
+                        <div class="d-flex justify-content-between align-items-center py-2 border-bottom">
+                            <div>
+                                <span class="badge {% if history.new_status == 'Resolved' %}bg-success{% elif history.new_status == 'In Progress' %}bg-info{% else %}bg-warning text-dark{% endif %}">
+                                    {{ history.new_status }}
+                                </span>
+                                {% if history.notes %}
+                                <small class="text-muted ms-2">{{ history.notes }}</small>
+                                {% endif %}
+                            </div>
+                            <small class="text-muted">{{ history.created_at.strftime('%b %d, %Y %H:%M') }}</small>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    {% endif %}
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
