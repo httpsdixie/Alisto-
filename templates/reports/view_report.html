@@ -60,25 +60,16 @@
                     <p class="bg-light p-3 rounded">{{ report.description }}</p>
                 </div>
                 
-                <div class="mb-4" id="photoSection">
+                {% if report.photo_path %}
+                <div class="mb-4">
                     <h6 class="text-muted mb-2">Photo Evidence</h6>
-                    {% if report.photo_path %}
-                        {% if report.photo_path.startswith('http://') or report.photo_path.startswith('https://') %}
-                            <img src="{{ report.photo_path }}" class="img-fluid rounded" alt="Report photo" style="max-height: 400px;">
-                        {% else %}
-                            <img src="/static/uploads/{{ report.photo_path }}" class="img-fluid rounded" alt="Report photo" style="max-height: 400px;">
-                        {% endif %}
+                    {% if report.photo_path.startswith('http://') or report.photo_path.startswith('https://') %}
+                        <img src="{{ report.photo_path }}" class="img-fluid rounded" alt="Report photo" style="max-height: 400px;">
                     {% else %}
-                        <div class="alert alert-info" id="uploadingMessage">
-                            <div class="d-flex align-items-center">
-                                <div class="spinner-border spinner-border-sm me-2" role="status">
-                                    <span class="visually-hidden">Loading...</span>
-                                </div>
-                                <span>Photo is being uploaded... <small class="text-muted">(refreshing in <span id="countdown">5</span>s)</small></span>
-                            </div>
-                        </div>
+                        <img src="/static/uploads/{{ report.photo_path }}" class="img-fluid rounded" alt="Report photo" style="max-height: 400px;">
                     {% endif %}
                 </div>
+                {% endif %}
                 
                 {% if report.admin_notes %}
                 <div class="mb-4">
@@ -353,27 +344,3 @@
 {% endblock %}
 
 
-{% block extra_js %}
-<script>
-// Auto-refresh if photo is still uploading
-document.addEventListener('DOMContentLoaded', function() {
-    const uploadingMessage = document.getElementById('uploadingMessage');
-    if (uploadingMessage) {
-        let countdown = 5;
-        const countdownEl = document.getElementById('countdown');
-        
-        const interval = setInterval(() => {
-            countdown--;
-            if (countdownEl) {
-                countdownEl.textContent = countdown;
-            }
-            
-            if (countdown <= 0) {
-                clearInterval(interval);
-                location.reload();
-            }
-        }, 1000);
-    }
-});
-</script>
-{% endblock %}
