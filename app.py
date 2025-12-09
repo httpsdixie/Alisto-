@@ -1131,6 +1131,8 @@ async def admin_users(
         query = query.filter_by(user_type='Faculty', is_admin=False)
     elif category == "admin":
         query = query.filter_by(is_admin=True)
+    elif category == "deactivated":
+        query = query.filter_by(is_active=False)
     
     if keyword:
         query = query.filter(
