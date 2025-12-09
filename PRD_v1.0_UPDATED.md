@@ -74,7 +74,7 @@ The system supports two primary user roles:
 
 **Registration:**
 - Users register using verified institutional credentials:
-  - Student ID (format: YYYY-NNNNN, e.g., 2024-10001)
+  - Student ID (format: YYYY-NNNNN, e.g., 2025-10001)
   - Full name
   - Email address
   - Secure password

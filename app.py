@@ -371,7 +371,7 @@ async def register(
     pattern = r'^\d{4}-\d{5}$'
     if not re.match(pattern, student_id):
         response = RedirectResponse(url="/register", status_code=302)
-        response.set_cookie("flash_message", "danger:ID must be in format YYYY-NNNNN (e.g., 2024-12345)", max_age=5)
+        response.set_cookie("flash_message", "danger:ID must be in format YYYY-NNNNN (e.g., 2025-12345)", max_age=5)
         return response
     
     if len(password) > 72:

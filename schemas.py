@@ -43,7 +43,7 @@ class RegistrationRequest(BaseModel):
     def validate_student_id(cls, v):
         pattern = r'^\d{4}-\d{5}$'
         if not re.match(pattern, v):
-            raise ValueError('ID must be in format YYYY-NNNNN (e.g., 2024-12345)')
+            raise ValueError('ID must be in format YYYY-NNNNN (e.g., 2025-12345)')
         return v
     
     @field_validator('password')
